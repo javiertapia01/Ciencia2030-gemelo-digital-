@@ -1,0 +1,47 @@
+{
+  "experiment_name": "experimento_i_asignacion_generacional",
+  "inputs": {
+    "hpa_zip": "../tmp/data_inventory/Ficha/Ficha/BBDD/Datos de Historia Previsional de Afiliados/hpa.zip",
+    "returns_workbook": "../tmp/data_inventory/Ficha/Ficha/BBDD/base_de_datos_fondos_pensiones.xlsx",
+    "returns_sheet": "2_Rentab_Real_Mensual_Sist",
+    "parameters_csv": "../data/external/parameters_2008_2025.csv"
+  },
+  "window": {"start": "2008-01", "end": "2025-12"},
+  "population": {
+    "ids": [],
+    "sample_size": null,
+    "sample_seed": 2030,
+    "minimum_history_months": 24
+  },
+  "model": {
+    "contribution_rate": 0.10,
+    "contribution_timing": "start_of_month",
+    "birth_day_convention": 15,
+    "uf_convention": "calendar_month_end",
+    "observed_fund_rule": "largest_positive_balance",
+    "cuts": [35, 45, 55, 65],
+    "sensitivity_cuts": {
+      "transicion_5_anios_antes": [30, 40, 50, 60],
+      "base": [35, 45, 55, 65],
+      "transicion_5_anios_despues": [40, 50, 60, 70]
+    }
+  },
+  "validation": {
+    "minimum_observations": 100,
+    "minimum_observed_balance_uf": 5.0,
+    "max_median_absolute_relative_error": 0.10,
+    "final_window_months": 12,
+    "max_final_window_median_absolute_relative_error": 0.10,
+    "max_absolute_annual_drift": 0.005
+  },
+  "inference": {
+    "bootstrap_iterations": 2000,
+    "bootstrap_seed": 2030,
+    "confidence_level": 0.95
+  },
+  "outputs": {
+    "base_directory": "../output/runs",
+    "manual_trajectory_people": 30,
+    "write_all_trajectories": false
+  }
+}

@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+dist/
+build/
+*.egg-info/
+.DS_Store
+
+# Configuración local de cada integrante.
+config/*.local.json
+
+# Los datos originales y las corridas pueden ser grandes y/o confidenciales.
+tmp/
+data/raw/
+*.zip
+*.7z
+output/runs/
+
+# Artefactos exploratorios y entregables generados localmente.
+output/pdf/
