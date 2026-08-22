@@ -1,0 +1,15 @@
+{
+  "experiment_type": "toy_synthetic_not_empirical",
+  "gate_passed_by_construction": true,
+  "validation_max_absolute_error_uf": 0.0,
+  "people": 800,
+  "months": 120,
+  "base": {
+    "median_delta_uf": -11.807720852474517,
+    "mean_delta_uf": -12.51521650783921,
+    "median_delta_relative": -0.02278826354974034,
+    "winner_share": 0.265
+  },
+  "warning": "Resultados sintéticos para demostración; no describen la HPA ni la reforma real.",
+  "seed": 2030
+}

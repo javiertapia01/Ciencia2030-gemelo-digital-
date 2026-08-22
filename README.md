@@ -72,6 +72,27 @@ El software está implementado y probado. En una corrida reproducible de diagnó
 
 Por eso el resultado correcto fue **`gate_closed`**: el sistema no publicó diferencias contrafactuales. Esto demuestra que el control metodológico funciona y que todavía debemos explicar flujos omitidos —por ejemplo, pensión/fallecimiento, retiros, movimientos CCICO o timing de acreditación— antes de presentar impactos finales.
 
+## Experimentos toy: resultados demostrativos
+
+Para mostrar qué información entregará el gemelo cuando el gate esté abierto, el repositorio incluye una cohorte **100% sintética** de 800 personas y un mercado determinista de 10 años. Esta demo no usa HPA, no estima la reforma real y no debe interpretarse como evidencia empírica.
+
+```bash
+gemelo-previsional toy --output-dir examples/toy --people 800 --months 120 --seed 2030
+```
+
+La corrida reproduce exactamente el mundo observado por construcción (`error máximo = 0 UF`) y luego compara tres calendarios de transición:
+
+| Experimento | Resultado toy | Qué permite observar |
+|---|---:|---|
+| Tres trayectorias individuales | `+27,3`, `−76,8` y `−175,3 UF` al año 10 | El efecto depende de la edad inicial, el saldo y el momento en que cambia el riesgo. |
+| Cohorte, escenario base | Mediana `−11,8 UF` (`−2,3%`); `26,5%` termina con mayor saldo | La distribución completa revela heterogeneidad que el promedio oculta. |
+| Transición 5 años antes | Mediana `−21,9 UF`; `16,6%` con mayor saldo | Adelantar el calendario aumenta la exposición a la regla durante el horizonte. |
+| Transición 5 años después | Mediana `0,0 UF`; `46,6%` con mayor saldo | Postergar la transición reduce el contraste entre ambos mundos. |
+
+Los CSV y el resumen JSON reproducibles están documentados en [`examples/toy/README.md`](examples/toy/README.md).
+
+![Resumen gráfico de los experimentos toy](examples/toy/toy-results.svg)
+
 ## Demo rápida para el equipo
 
 ### 1. Clonar y preparar el entorno
@@ -104,7 +125,7 @@ python -m pip install -e .
 python -m unittest discover -s tests -v
 ```
 
-Las pruebas sintéticas verifican los cortes etarios, el aporte al comienzo del mes, la conversión de unidades, el tope imponible, la recursión paralela, el gate, Wilcoxon y el bootstrap reproducible.
+Las pruebas sintéticas verifican los cortes etarios, el aporte al comienzo del mes, la conversión de unidades, el tope imponible, la recursión paralela, el gate, Wilcoxon, el bootstrap reproducible y la demo toy.
 
 ### 3. Conectar los datos del proyecto
 
@@ -168,6 +189,7 @@ Si el gate falla, aparece `GATE_CLOSED.md` y no se exportan columnas ni métrica
 ├── config/                         # Configuración base y ejemplo local
 ├── data/external/                  # UF y topes públicos con URL por fila
 ├── docs/                           # Metodología y contratos de datos
+├── examples/toy/                   # Resultados sintéticos reproducibles
 ├── scripts/                        # Descarga reproducible de parámetros públicos
 ├── src/gemelo_previsional/         # Motor del gemelo digital
 ├── tests/                          # Pruebas sintéticas y deterministas
@@ -181,9 +203,10 @@ Los ZIP, datos HPA, archivos temporales y resultados con identificadores están 
 
 1. **Problema:** no conocemos el efecto puro de cambiar la asignación de fondos.
 2. **Diseño:** misma persona, mismos ingresos, cotizaciones y mercado; cambia solo el fondo.
-3. **Demostración:** ejecutar pruebas y mostrar el manifiesto y el gate de una muestra.
-4. **Hallazgo actual:** la contabilidad simplificada exhibe deriva; aún no corresponde interpretar el what-if.
-5. **Valor del gemelo:** hace explícito qué falta, evita conclusiones prematuras y deja preparado el análisis final una vez corregida la reconstrucción.
+3. **Demostración:** ejecutar `gemelo-previsional toy` y mostrar trayectorias, distribución y sensibilidad.
+4. **Control de realidad:** mostrar el manifiesto y el gate cerrado de la muestra HPA.
+5. **Hallazgo actual:** la demo explica las salidas posibles, pero la contabilidad HPA aún exhibe deriva y no corresponde interpretar su what-if.
+6. **Valor del gemelo:** hace explícito qué falta, evita conclusiones prematuras y deja preparado el análisis final una vez corregida la reconstrucción.
 
 ## Próximos pasos del equipo
 
@@ -206,4 +229,3 @@ Los ZIP, datos HPA, archivos temporales y resultados con identificadores están 
 La UF proviene de las tablas oficiales del Servicio de Impuestos Internos y los topes de la Superintendencia de Pensiones. Cada fila del CSV público conserva las URL utilizadas.
 
 La HPA es una base longitudinal con montos redondeados y no debe compartirse en este repositorio. Los resultados individuales también permanecen fuera de Git. Este proyecto no produce estimaciones representativas del universo nacional porque la muestra no posee factores de expansión.
-
