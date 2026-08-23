@@ -1,0 +1,16 @@
+scenario,scenario_label,state,person_months,share_person_months
+estable,Trayectoria estable,cotizando,866060,0.9021458333333333
+estable,Trayectoria estable,desempleado,19234,0.020035416666666667
+estable,Trayectoria estable,informal,21607,0.022507291666666665
+estable,Trayectoria estable,licencia,4897,0.005101041666666667
+estable,Trayectoria estable,invalidez,48202,0.05021041666666667
+intermitente,Trayectoria intermitente,cotizando,702612,0.7318875
+intermitente,Trayectoria intermitente,desempleado,63207,0.065840625
+intermitente,Trayectoria intermitente,informal,105176,0.10955833333333333
+intermitente,Trayectoria intermitente,licencia,12232,0.012741666666666667
+intermitente,Trayectoria intermitente,invalidez,76773,0.079971875
+adversa,Trayectoria adversa,cotizando,446015,0.4645989583333333
+adversa,Trayectoria adversa,desempleado,125993,0.13124270833333335
+adversa,Trayectoria adversa,informal,224650,0.23401041666666667
+adversa,Trayectoria adversa,licencia,22427,0.023361458333333335
+adversa,Trayectoria adversa,invalidez,140915,0.14678645833333334

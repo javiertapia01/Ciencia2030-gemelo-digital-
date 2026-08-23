@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="780" viewBox="0 0 1200 780">
+<style>text{font-family:Segoe UI,Arial,sans-serif;fill:#17324d}.title{font-size:30px;font-weight:700}.subtitle{font-size:16px;fill:#49657d}.label{font-size:16px;font-weight:600}.small{font-size:13px;fill:#49657d}.axis{stroke:#9fb2c2;stroke-width:1}.grid{stroke:#dce5ec;stroke-width:1}</style>
+<rect width="1200" height="780" fill="#f7fafc"/>
+<text class="title" x="60" y="55">Hito 2 · Gemelo individual estocástico</text>
+<text class="subtitle" x="60" y="84">Distribución Monte Carlo del saldo final y trayectorias representativas</text>
+<text class="label" x="60" y="135">Saldo final por escenario (P10 — mediana — P90)</text>
+<line class="grid" x1="250.0" y1="155" x2="250.0" y2="350"/>
+<text class="small" x="250.0" y="375" text-anchor="middle">1,789 UF</text>
+<line class="grid" x1="424.0" y1="155" x2="424.0" y2="350"/>
+<text class="small" x="424.0" y="375" text-anchor="middle">2,943 UF</text>
+<line class="grid" x1="598.0" y1="155" x2="598.0" y2="350"/>
+<text class="small" x="598.0" y="375" text-anchor="middle">4,096 UF</text>
+<line class="grid" x1="772.0" y1="155" x2="772.0" y2="350"/>
+<text class="small" x="772.0" y="375" text-anchor="middle">5,249 UF</text>
+<line class="grid" x1="946.0" y1="155" x2="946.0" y2="350"/>
+<text class="small" x="946.0" y="375" text-anchor="middle">6,402 UF</text>
+<line class="grid" x1="1120.0" y1="155" x2="1120.0" y2="350"/>
+<text class="small" x="1120.0" y="375" text-anchor="middle">7,556 UF</text>
+<text class="label" x="60" y="200" dominant-baseline="middle">Trayectoria estable</text>
+<line x1="941.5" y1="195" x2="1060.0" y2="195" stroke="#147d92" stroke-width="8" stroke-linecap="round" opacity="0.42"/>
+<circle cx="1028.5" cy="195" r="9" fill="#147d92"/>
+<text class="small" x="1028.5" y="178" text-anchor="middle">6,949</text>
+<text class="label" x="60" y="262" dominant-baseline="middle">Trayectoria intermitente</text>
+<line x1="652.2" y1="257" x2="949.0" y2="257" stroke="#d98c10" stroke-width="8" stroke-linecap="round" opacity="0.42"/>
+<circle cx="853.4" cy="257" r="9" fill="#d98c10"/>
+<text class="small" x="853.4" y="240" text-anchor="middle">5,789</text>
+<text class="label" x="60" y="324" dominant-baseline="middle">Trayectoria adversa</text>
+<line x1="310.0" y1="319" x2="717.5" y2="319" stroke="#b43b4f" stroke-width="8" stroke-linecap="round" opacity="0.42"/>
+<circle cx="560.4" cy="319" r="9" fill="#b43b4f"/>
+<text class="small" x="560.4" y="302" text-anchor="middle">3,847</text>
+<text class="label" x="60" y="435">Trayectoria de saldo del camino más cercano a la mediana</text>
+<line class="grid" x1="90.0" y1="700.0" x2="1120.0" y2="700.0"/>
+<text class="small" x="78.0" y="704.0" text-anchor="end">0</text>
+<line class="grid" x1="90.0" y1="642.5" x2="1120.0" y2="642.5"/>
+<text class="small" x="78.0" y="646.5" text-anchor="end">1,737</text>
+<line class="grid" x1="90.0" y1="585.0" x2="1120.0" y2="585.0"/>
+<text class="small" x="78.0" y="589.0" text-anchor="end">3,474</text>
+<line class="grid" x1="90.0" y1="527.5" x2="1120.0" y2="527.5"/>
+<text class="small" x="78.0" y="531.5" text-anchor="end">5,212</text>
+<line class="grid" x1="90.0" y1="470.0" x2="1120.0" y2="470.0"/>
+<text class="small" x="78.0" y="474.0" text-anchor="end">6,949</text>
+<polyline points="92.1,699.5 115.8,697.9 141.5,696.1 167.2,694.9 193.0,692.5 218.8,690.6 244.5,687.9 270.2,686.6 296.0,683.8 321.8,680.1 347.5,677.8 373.2,673.4 399.0,670.4 424.8,666.5 450.5,661.2 476.2,658.6 502.0,651.9 527.8,647.9 553.5,642.8 579.2,635.0 605.0,632.5 630.8,624.7 656.5,619.6 682.2,613.3 708.0,605.1 733.8,600.7 759.5,590.4 785.2,584.4 811.0,576.2 836.8,564.6 862.5,559.9 888.2,549.7 914.0,543.1 939.8,535.2 965.5,523.8 991.2,517.8 1017.0,505.3 1042.8,497.7 1068.5,490.3 1094.2,477.5 1120.0,470.0" fill="none" stroke="#147d92" stroke-width="4"/>
+<line x1="390" y1="748" x2="418" y2="748" stroke="#147d92" stroke-width="5"/>
+<text class="small" x="426" y="753">Trayectoria estable</text>
+<polyline points="92.1,699.5 115.8,697.9 141.5,696.1 167.2,696.2 193.0,694.0 218.8,692.1 244.5,689.3 270.2,688.0 296.0,685.9 321.8,682.3 347.5,680.1 373.2,676.4 399.0,674.9 424.8,671.5 450.5,667.2 476.2,666.5 502.0,660.9 527.8,657.3 553.5,653.0 579.2,646.2 605.0,643.1 630.8,637.1 656.5,632.5 682.2,626.9 708.0,619.2 733.8,615.2 759.5,606.4 785.2,601.9 811.0,595.7 836.8,587.4 862.5,583.1 888.2,575.0 914.0,569.6 939.8,562.6 965.5,552.7 991.2,547.3 1017.0,536.5 1042.8,529.5 1068.5,522.3 1094.2,513.2 1120.0,508.4" fill="none" stroke="#d98c10" stroke-width="4"/>
+<line x1="635" y1="748" x2="663" y2="748" stroke="#d98c10" stroke-width="5"/>
+<text class="small" x="671" y="753">Trayectoria intermitente</text>
+<polyline points="92.1,699.5 115.8,698.2 141.5,698.1 167.2,698.2 193.0,698.0 218.8,697.7 244.5,695.7 270.2,694.9 296.0,692.7 321.8,690.8 347.5,690.0 373.2,686.9 399.0,685.7 424.8,684.3 450.5,681.9 476.2,680.3 502.0,676.1 527.8,673.2 553.5,669.6 579.2,664.5 605.0,661.8 630.8,656.5 656.5,654.1 682.2,649.6 708.0,643.6 733.8,641.1 759.5,636.0 785.2,632.0 811.0,628.1 836.8,622.6 862.5,621.1 888.2,616.4 914.0,613.9 939.8,610.8 965.5,605.8 991.2,603.8 1017.0,597.2 1042.8,591.5 1068.5,585.2 1094.2,577.1 1120.0,572.7" fill="none" stroke="#b43b4f" stroke-width="4"/>
+<line x1="880" y1="748" x2="908" y2="748" stroke="#b43b4f" stroke-width="5"/>
+<text class="small" x="916" y="753">Trayectoria adversa</text>
+<line class="axis" x1="90.0" y1="700.0" x2="1120.0" y2="700.0"/>
+<text class="small" x="90" y="730">Inicio</text>
+<text class="small" x="1120.0" y="730" text-anchor="end">Jubilación</text>
+<text class="small" x="60" y="753">Saldo (UF)</text>
+<text class="small" x="60" y="770">Escenarios sintéticos; no son una predicción.</text>
+</svg>

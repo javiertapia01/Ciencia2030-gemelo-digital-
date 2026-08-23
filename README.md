@@ -8,7 +8,7 @@
 
 ## En una frase
 
-Este repositorio construye y valida la primera capa de un gemelo digital previsional: un laboratorio contrafactual que usa historias reales anonimizadas para estudiar qué cambia cuando se modifica únicamente la asignación de fondo de una persona.
+Este repositorio construye un gemelo digital previsional en dos capas individuales: un laboratorio contrafactual con historias reales anonimizadas y una simulación estocástica de vidas laborales sintéticas hasta la jubilación.
 
 ## Motivación dentro del taller
 
@@ -100,7 +100,7 @@ flowchart LR
     E --> F["Nivel AFP: premios, castigos y recomendación de cartera"]
 ```
 
-El repositorio implementa actualmente los bloques de datos, Experimento I, gate y análisis histórico. Los bloques de vida estocástica, diez fondos, optimización y recomendación son extensiones posteriores del taller.
+El repositorio implementa actualmente los bloques de datos, Experimento I, gate y análisis histórico, además de una primera versión sintética de la vida laboral estocástica. Los diez Fondos Generacionales, el nivel AFP, la optimización y la recomendación siguen siendo extensiones posteriores.
 
 ## Criterio de éxito de corto plazo
 
@@ -171,7 +171,8 @@ Su principal fortaleza es la profundidad longitudinal. Sus principales limitacio
 | Inferencia y estratificación | Implementadas, bloqueadas hasta pasar el gate |
 | Demo toy sin datos confidenciales | Implementada |
 | Validación empírica HPA | En diagnóstico |
-| Etapa 2 y nivel AFP | No iniciados en este repositorio |
+| Hito 2: nivel individual estocástico | Implementado en primera versión sintética |
+| Nivel AFP | No iniciado en este repositorio |
 
 En una corrida reproducible de diagnóstico sobre 100 personas seleccionadas:
 
@@ -257,6 +258,18 @@ Resultados ilustrativos del escenario construido:
 
 Estos valores son correctos dentro de la simulación, pero no describen la HPA ni la reforma. Los archivos reproducibles se encuentran en [`examples/toy/`](examples/toy/README.md).
 
+## Hito 2: vida laboral estocástica
+
+La primera versión del segundo hito simula una vida previsional completa entre los 25 y 65 años mediante una cadena de Markov mensual. Compara tres escenarios —estable, intermitente y adverso— con 2.000 caminos Monte Carlo por escenario.
+
+Todos los escenarios comparten perfil inicial, salario potencial, mercado, semilla y regla proxy A–E. Solo cambian las probabilidades de transición entre `cotizando`, `desempleado`, `informal`, `licencia` e `invalidez`; por eso la comparación aísla el efecto de las trayectorias laborales bajo los supuestos declarados.
+
+```powershell
+gemelo-previsional hito2 --config config/hito2.json --output-dir examples/hito2
+```
+
+Los parámetros son supuestos de escenarios y no estimaciones HPA. La metodología, las limitaciones y los criterios de validación están en [`docs/MILESTONE2.md`](docs/MILESTONE2.md); los resultados reproducibles se encuentran en [`examples/hito2/`](examples/hito2/README.md).
+
 ## Cómo colabora el equipo en este repositorio
 
 El taller enfatiza que colaborar no es dividir partes aisladas y unirlas al final. Cada frente puede tener responsables, pero las decisiones metodológicas y el mensaje deben ser comprendidos por todo el grupo.
@@ -286,7 +299,7 @@ Para cada cambio importante conviene registrar:
 | Comprensión | ¿Cómo funcionan AFP, cuentas y reforma? | Ficha resumen y marco común | Realizada |
 | Datos | ¿Qué evidencia tenemos y cómo se transforma? | Panel persona–mes auditable | Realizada |
 | Experimento I | ¿Cuál es el efecto puro histórico de asignación? | Contrafactual HPA validado | Meta actual |
-| Nivel individual estocástico | ¿Cómo cambian los resultados con distintas vidas laborales? | Al menos tres escenarios y Monte Carlo | Etapa 2 |
+| Nivel individual estocástico | ¿Cómo cambian los resultados con distintas vidas laborales? | Al menos tres escenarios y Monte Carlo | Realizada, versión sintética v1 |
 | Nivel AFP | ¿Cómo se agregan cotizantes y diez fondos? | Gemelo agregado y probabilidad de castigo | Etapa 2 |
 | Optimización | ¿Qué estrategia equilibra riesgo, premio y castigo? | Sensibilidad y propuesta de cartera | Etapa 2 |
 | Recomendación | ¿Qué debería hacer una AFP y bajo qué condiciones? | Informe y presentación final | Etapa 2 |
@@ -323,7 +336,15 @@ python -m pip install -e .
 python -m unittest discover -s tests -v
 ```
 
-Las pruebas verifican unidades, topes, cortes etarios, identidad contable, contribuciones iguales entre mundos, gate, inferencia reproducible y demo toy.
+Las pruebas verifican unidades, topes, cortes etarios, identidad contable, contribuciones iguales entre mundos, gate, inferencia reproducible, demo toy y reproducibilidad del Hito 2.
+
+### Ejecutar el segundo hito
+
+```powershell
+gemelo-previsional hito2 --config config/hito2.json --output-dir examples/hito2
+```
+
+La semilla y el número de caminos se pueden sobrescribir con `--seed` y `--paths`. La configuración versionada contiene el perfil común y las matrices de transición completas.
 
 ### 3. Conectar los datos autorizados
 
@@ -392,7 +413,8 @@ Si el gate falla se genera `GATE_CLOSED.md`. `--force-counterfactual` existe exc
 ├── config/                         # Configuración del experimento
 ├── data/external/                  # UF y topes públicos trazables
 ├── docs/                           # Metodología y contratos de datos
-├── examples/toy/                   # Demo y resultados sintéticos
+├── examples/toy/                   # Demo sintética inicial
+├── examples/hito2/                 # Monte Carlo de vidas laborales y resultados
 ├── scripts/                        # Preparación de parámetros públicos
 ├── src/gemelo_previsional/         # Motor del gemelo digital
 ├── tests/                          # Pruebas deterministas
@@ -413,6 +435,7 @@ Si el gate falla se genera `GATE_CLOSED.md`. `--force-counterfactual` existe exc
 ## Documentación técnica
 
 - [Metodología implementada](docs/METHODOLOGY.md)
+- [Metodología del Hito 2](docs/MILESTONE2.md)
 - [Contratos de datos y salidas](docs/DATA_CONTRACTS.md)
 - [Configuración de ejemplo](config/experiment.example.json)
 - [Demo toy](examples/toy/README.md)

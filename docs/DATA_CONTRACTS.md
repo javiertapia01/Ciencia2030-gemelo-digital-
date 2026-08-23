@@ -80,3 +80,20 @@ Si el gate falla se agrega `GATE_CLOSED.md`. Una corrida forzada mantiene `gate_
 Sin `--force-counterfactual`, las trayectorias de una corrida con gate cerrado contienen solo saldo reportado y reconstrucción observada; no incluyen columnas what-if ni diferencias contrafactuales.
 
 El diagnóstico de un paso tampoco publica resultados contrafactuales. `one_step_residuals.csv` parte de saldos reportados consecutivos; `one_step_variant_summary.csv` compara variantes sobre las mismas transiciones; y `one_step_selection.json` registra la selección hecha únicamente en calibración y su evaluación separada en validación.
+
+## Salidas del Hito 2
+
+La corrida sintética `gemelo-previsional hito2` no usa HPA y escribe:
+
+| Archivo | Contrato |
+|---|---|
+| `hito2_summary.json` | Configuración, alcance, semilla, supuestos, advertencias y caminos representativos. |
+| `hito2_path_results.csv` | Una fila por escenario y camino Monte Carlo, con saldo final, contribuciones, densidad y meses por estado. |
+| `hito2_scenario_summary.csv` | Media, desviación, P10, mediana, P90 y comparación con el escenario base. |
+| `hito2_state_occupancy.csv` | Participación de cada estado en los persona–mes simulados. |
+| `hito2_transition_matrices.csv` | Matrices mensuales en formato largo y auditable. |
+| `hito2_representative_trajectories.csv` | Historia mensual del camino más cercano a la mediana de cada escenario. |
+| `hito2_market_returns.csv` | Mercado sintético común utilizado por los escenarios. |
+| `hito2-results.svg` | Resumen gráfico de distribuciones y trayectorias. |
+
+`scenario` y `path_id` identifican de manera única los resultados. `draw_id` enlaza la misma extracción uniforme entre escenarios y permite interpretar `paired_gap_vs_baseline_uf`. `contribution_density` siempre pertenece a `[0,1]`; los saldos y contribuciones se expresan en UF reales del modelo.

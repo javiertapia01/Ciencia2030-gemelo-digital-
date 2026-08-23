@@ -1,0 +1,205 @@
+{
+  "experiment_name": "hito_2_gemelo_individual_estocastico_v1",
+  "status": "completed",
+  "experiment_type": "synthetic_individual_life_course_monte_carlo",
+  "methodological_scope": "hito_2_primera_version",
+  "seed": 2030,
+  "paths_per_scenario": 2000,
+  "scenario_count": 3,
+  "months": 480,
+  "years": 40.0,
+  "common_random_numbers": true,
+  "common_deterministic_market": true,
+  "representative_paths": {
+    "estable": "estable_01538",
+    "intermitente": "intermitente_01033",
+    "adversa": "adversa_00868"
+  },
+  "profile": {
+    "start_age": 25,
+    "retirement_age": 65,
+    "initial_monthly_wage_uf": 40.0,
+    "initial_balance_uf": 10.0,
+    "annual_real_wage_growth": 0.01,
+    "contribution_rate": 0.1,
+    "initial_state": "cotizando"
+  },
+  "fund_proxy": {
+    "cuts": [
+      35,
+      45,
+      55,
+      65
+    ],
+    "description": "Proxy A-E de riesgo decreciente por edad; no representa los diez Fondos Generacionales definitivos."
+  },
+  "scenario_assumptions": {
+    "estable": {
+      "label": "Trayectoria estable",
+      "description": "Alta permanencia en empleo formal y episodios breves de desempleo o licencia."
+    },
+    "intermitente": {
+      "label": "Trayectoria intermitente",
+      "description": "Mayor entrada y persistencia en desempleo e informalidad, con recuperación parcial al empleo formal."
+    },
+    "adversa": {
+      "label": "Trayectoria adversa",
+      "description": "Lagunas frecuentes y persistentes, informalidad prolongada y mayor riesgo ilustrativo de invalidez."
+    }
+  },
+  "warnings": [
+    "Las probabilidades de transición son supuestos de escenarios y no estimaciones HPA.",
+    "Los fondos A-E son proxies históricos de riesgo y no los diez Fondos Generacionales definitivos.",
+    "El mercado es común y determinista para aislar el efecto de la trayectoria laboral.",
+    "Los resultados son sintéticos y no constituyen una predicción de pensión ni una estimación nacional."
+  ],
+  "config": {
+    "experiment_name": "hito_2_gemelo_individual_estocastico_v1",
+    "seed": 2030,
+    "paths_per_scenario": 2000,
+    "baseline_scenario": "estable",
+    "profile": {
+      "start_age": 25,
+      "retirement_age": 65,
+      "initial_monthly_wage_uf": 40.0,
+      "initial_balance_uf": 10.0,
+      "annual_real_wage_growth": 0.01,
+      "contribution_rate": 0.1,
+      "initial_state": "cotizando"
+    },
+    "fund_proxy": {
+      "cuts": [
+        35,
+        45,
+        55,
+        65
+      ],
+      "description": "Proxy A-E de riesgo decreciente por edad; no representa los diez Fondos Generacionales definitivos."
+    },
+    "scenarios": {
+      "estable": {
+        "label": "Trayectoria estable",
+        "description": "Alta permanencia en empleo formal y episodios breves de desempleo o licencia.",
+        "transition_matrix": {
+          "cotizando": {
+            "cotizando": 0.985,
+            "desempleado": 0.008,
+            "informal": 0.003,
+            "licencia": 0.0038,
+            "invalidez": 0.0002
+          },
+          "desempleado": {
+            "cotizando": 0.35,
+            "desempleado": 0.6,
+            "informal": 0.04,
+            "licencia": 0.0095,
+            "invalidez": 0.0005
+          },
+          "informal": {
+            "cotizando": 0.12,
+            "desempleado": 0.03,
+            "informal": 0.845,
+            "licencia": 0.0045,
+            "invalidez": 0.0005
+          },
+          "licencia": {
+            "cotizando": 0.7,
+            "desempleado": 0.02,
+            "informal": 0.005,
+            "licencia": 0.2745,
+            "invalidez": 0.0005
+          },
+          "invalidez": {
+            "cotizando": 0.0,
+            "desempleado": 0.0,
+            "informal": 0.0,
+            "licencia": 0.0,
+            "invalidez": 1.0
+          }
+        }
+      },
+      "intermitente": {
+        "label": "Trayectoria intermitente",
+        "description": "Mayor entrada y persistencia en desempleo e informalidad, con recuperación parcial al empleo formal.",
+        "transition_matrix": {
+          "cotizando": {
+            "cotizando": 0.96,
+            "desempleado": 0.02,
+            "informal": 0.012,
+            "licencia": 0.0077,
+            "invalidez": 0.0003
+          },
+          "desempleado": {
+            "cotizando": 0.2,
+            "desempleado": 0.7,
+            "informal": 0.08,
+            "licencia": 0.0193,
+            "invalidez": 0.0007
+          },
+          "informal": {
+            "cotizando": 0.08,
+            "desempleado": 0.04,
+            "informal": 0.87,
+            "licencia": 0.0093,
+            "invalidez": 0.0007
+          },
+          "licencia": {
+            "cotizando": 0.55,
+            "desempleado": 0.05,
+            "informal": 0.02,
+            "licencia": 0.3793,
+            "invalidez": 0.0007
+          },
+          "invalidez": {
+            "cotizando": 0.0,
+            "desempleado": 0.0,
+            "informal": 0.0,
+            "licencia": 0.0,
+            "invalidez": 1.0
+          }
+        }
+      },
+      "adversa": {
+        "label": "Trayectoria adversa",
+        "description": "Lagunas frecuentes y persistentes, informalidad prolongada y mayor riesgo ilustrativo de invalidez.",
+        "transition_matrix": {
+          "cotizando": {
+            "cotizando": 0.93,
+            "desempleado": 0.035,
+            "informal": 0.022,
+            "licencia": 0.0125,
+            "invalidez": 0.0005
+          },
+          "desempleado": {
+            "cotizando": 0.1,
+            "desempleado": 0.78,
+            "informal": 0.095,
+            "licencia": 0.024,
+            "invalidez": 0.001
+          },
+          "informal": {
+            "cotizando": 0.04,
+            "desempleado": 0.045,
+            "informal": 0.9,
+            "licencia": 0.014,
+            "invalidez": 0.001
+          },
+          "licencia": {
+            "cotizando": 0.38,
+            "desempleado": 0.1,
+            "informal": 0.04,
+            "licencia": 0.479,
+            "invalidez": 0.001
+          },
+          "invalidez": {
+            "cotizando": 0.0,
+            "desempleado": 0.0,
+            "informal": 0.0,
+            "licencia": 0.0,
+            "invalidez": 1.0
+          }
+        }
+      }
+    }
+  }
+}
