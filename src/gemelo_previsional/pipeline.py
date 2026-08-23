@@ -12,6 +12,7 @@ import pandas as pd
 
 from . import __version__
 from .diagnostics import run_one_step_diagnostics
+from .hpa_adapter import hpa_contract_sample
 from .io import (
     build_panel,
     load_characteristics,
@@ -204,6 +205,13 @@ def run_experiment(
     )
     quality = _data_quality(characteristics_all, characteristics, income, balances, panel)
     _write_json(output_dir / "data_quality.json", quality)
+    hpa_contract_sample(
+        panel,
+        people=int(config["outputs"]["manual_trajectory_people"]),
+        seed=int(config["population"]["sample_seed"]),
+    ).to_csv(
+        output_dir / "hpa_person_month_contract.csv", index=False, encoding="utf-8"
+    )
 
     manifest = {
         "experiment_name": config["experiment_name"],

@@ -6,6 +6,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from .individual_core import accounting_step_vectorized
 from .io import FUNDS
 
 
@@ -25,13 +26,7 @@ def generational_fund(age: int | float, cuts: list[int] | tuple[int, int, int, i
 
 def accounting_step(balance: float, contribution: float, monthly_return: float) -> float:
     """B[t+1] = (B[t] + C[t]) * (1 + r[t])."""
-    if not all(np.isfinite([balance, contribution, monthly_return])):
-        raise ValueError("Saldo, cotización y retorno deben ser finitos")
-    if balance < 0 or contribution < 0:
-        raise ValueError("Saldo y cotización no pueden ser negativos")
-    if monthly_return <= -1:
-        raise ValueError("El retorno mensual debe ser mayor que -100%")
-    return (balance + contribution) * (1.0 + monthly_return)
+    return float(accounting_step_vectorized(balance, contribution, monthly_return))
 
 
 def longest_valid_segment(group: pd.DataFrame) -> pd.DataFrame:

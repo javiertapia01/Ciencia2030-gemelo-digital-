@@ -10,13 +10,19 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from . import __version__
+from .individual_core import PERSON_MONTH_CONTRACT_VERSION, accounting_step_vectorized
+from .markov_adapter import (
+    ABSORBING_STATE,
+    CONTRIBUTING_STATE,
+    LABOR_STATES,
+    adapt_markov_trajectories_to_person_month,
+    advance_markov_states,
+    cumulative_transition_matrix,
+    transition_matrix_array,
+)
 from .model import generational_fund
 from .toy import deterministic_market_returns
-
-
-LABOR_STATES = ("cotizando", "desempleado", "informal", "licencia", "invalidez")
-CONTRIBUTING_STATE = "cotizando"
-ABSORBING_STATE = "invalidez"
 
 
 @dataclass
@@ -26,6 +32,7 @@ class Milestone2Outputs:
     state_occupancy: pd.DataFrame
     transition_matrices: pd.DataFrame
     representative_trajectories: pd.DataFrame
+    person_month_contract: pd.DataFrame
     market_returns: pd.DataFrame
     metadata: dict[str, Any]
 
@@ -137,11 +144,7 @@ def validate_milestone2_config(config: dict[str, Any]) -> None:
 
 
 def _matrix_array(scenario: dict[str, Any]) -> np.ndarray:
-    matrix = scenario["transition_matrix"]
-    return np.asarray(
-        [[float(matrix[source][target]) for target in LABOR_STATES] for source in LABOR_STATES],
-        dtype=float,
-    )
+    return transition_matrix_array(scenario)
 
 
 def _simulate_scenario(
@@ -153,9 +156,7 @@ def _simulate_scenario(
     uniforms: np.ndarray,
 ) -> tuple[pd.DataFrame, np.ndarray]:
     paths, months = uniforms.shape
-    matrix = _matrix_array(scenario)
-    cumulative = np.cumsum(matrix, axis=1)
-    cumulative[:, -1] = 1.0
+    cumulative = cumulative_transition_matrix(scenario)
     state_indices = np.full(paths, LABOR_STATES.index(profile["initial_state"]), dtype=np.int8)
     balances = np.full(paths, float(profile["initial_balance_uf"]), dtype=float)
     total_contributions = np.zeros(paths, dtype=float)
@@ -181,13 +182,10 @@ def _simulate_scenario(
         age = start_age + month / 12.0
         fund = generational_fund(age, cuts)
         monthly_return = float(return_matrix.iloc[month, fund_to_index[fund]])
-        balances = (balances + contribution) * (1.0 + monthly_return)
-        if not np.isfinite(balances).all() or bool((balances < 0).any()):
-            raise RuntimeError(f"La simulación de {scenario_name} produjo saldos inválidos")
+        balances = accounting_step_vectorized(balances, contribution, monthly_return)
         balance_history[:, month] = balances
 
-        thresholds = cumulative[state_indices]
-        state_indices = (uniforms[:, month, None] > thresholds).sum(axis=1).astype(np.int8)
+        state_indices = advance_markov_states(state_indices, uniforms[:, month], cumulative)
 
     records: dict[str, Any] = {
         "scenario": scenario_name,
@@ -213,9 +211,7 @@ def _representative_trajectory(
     representative_index: int,
 ) -> pd.DataFrame:
     months = uniforms.shape[1]
-    matrix = _matrix_array(scenario)
-    cumulative = np.cumsum(matrix, axis=1)
-    cumulative[:, -1] = 1.0
+    cumulative = cumulative_transition_matrix(scenario)
     state_index = LABOR_STATES.index(profile["initial_state"])
     balance = float(profile["initial_balance_uf"])
     initial_wage = float(profile["initial_monthly_wage_uf"])
@@ -233,7 +229,7 @@ def _representative_trajectory(
         fund = generational_fund(age, cuts)
         monthly_return = float(return_matrix.iloc[month][f"return_{fund}"])
         opening_balance = balance
-        balance = (balance + contribution) * (1.0 + monthly_return)
+        balance = float(accounting_step_vectorized(balance, contribution, monthly_return))
         records.append(
             {
                 "scenario": scenario_name,
@@ -251,7 +247,11 @@ def _representative_trajectory(
             }
         )
         state_index = int(
-            (uniforms[representative_index, month] > cumulative[state_index]).sum()
+            advance_markov_states(
+                np.asarray([state_index], dtype=np.int8),
+                np.asarray([uniforms[representative_index, month]], dtype=float),
+                cumulative,
+            )[0]
         )
     return pd.DataFrame(records)
 
@@ -409,8 +409,12 @@ def simulate_milestone2(config: dict[str, Any]) -> Milestone2Outputs:
         representative_paths[scenario_name] = str(group.loc[representative_index, "path_id"])
 
     representative_trajectories = pd.concat(trajectory_frames, ignore_index=True)
+    person_month_contract = adapt_markov_trajectories_to_person_month(
+        representative_trajectories
+    )
     metadata = {
         "experiment_name": config["experiment_name"],
+        "software_version": __version__,
         "status": "completed",
         "experiment_type": "synthetic_individual_life_course_monte_carlo",
         "methodological_scope": "hito_2_primera_version",
@@ -421,6 +425,8 @@ def simulate_milestone2(config: dict[str, Any]) -> Milestone2Outputs:
         "years": months / 12,
         "common_random_numbers": True,
         "common_deterministic_market": True,
+        "shared_accounting_core": "individual_core.accounting_step_vectorized",
+        "person_month_contract_version": PERSON_MONTH_CONTRACT_VERSION,
         "representative_paths": representative_paths,
         "profile": copy.deepcopy(profile),
         "fund_proxy": copy.deepcopy(config["fund_proxy"]),
@@ -445,6 +451,7 @@ def simulate_milestone2(config: dict[str, Any]) -> Milestone2Outputs:
         state_occupancy=occupancy,
         transition_matrices=transition_matrices,
         representative_trajectories=representative_trajectories,
+        person_month_contract=person_month_contract,
         market_returns=market_returns,
         metadata=metadata,
     )
@@ -556,6 +563,8 @@ def _write_readme(outputs: Milestone2Outputs, path: Path) -> None:
             "",
             "Las diferencias muestran cómo cambian los saldos sintéticos cuando solo se modifican las probabilidades de transición laboral. Todos los escenarios comparten perfil inicial, crecimiento salarial, mercado, semilla y regla proxy de fondos. La brecha pareada compara la misma extracción uniforme con su contraparte estable.",
             "",
+            "El cálculo usa el núcleo contable y el contrato persona–mes compartidos con el Experimento I; el generador de estados Markov permanece separado.",
+            "",
             "Las probabilidades no están calibradas con HPA: son supuestos transparentes de escenarios. Los fondos A–E son proxies, el mercado es determinista y el resultado no predice pensiones individuales ni representa a Chile.",
             "",
             "## Reproducir",
@@ -564,7 +573,7 @@ def _write_readme(outputs: Milestone2Outputs, path: Path) -> None:
             "gemelo-previsional hito2 --config config/hito2.json --output-dir examples/hito2",
             "```",
             "",
-            "Consulte `docs/MILESTONE2.md` para la metodología y `hito2_summary.json` para el manifiesto completo.",
+            "Consulte `docs/MILESTONE2.md` para la metodología, `hito2_summary.json` para el manifiesto y `hito2_person_month_contract.csv` para la vista común con HPA.",
             "",
         ]
     )
@@ -587,6 +596,9 @@ def run_milestone2(config: dict[str, Any], output_dir: str | Path) -> dict[str, 
     )
     outputs.representative_trajectories.to_csv(
         output / "hito2_representative_trajectories.csv", index=False, encoding="utf-8"
+    )
+    outputs.person_month_contract.to_csv(
+        output / "hito2_person_month_contract.csv", index=False, encoding="utf-8"
     )
     outputs.market_returns.to_csv(
         output / "hito2_market_returns.csv", index=False, encoding="utf-8"

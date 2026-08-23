@@ -67,6 +67,7 @@ Siempre:
 - `one_step_stratification.csv` cuando `diagnostics.one_step.enabled=true`
 - `manual_trajectories.csv`
 - `exclusions.csv`
+- `hpa_person_month_contract.csv`, muestra auditable del contrato común
 
 Solo si pasa el gate, o si se fuerza explícitamente como diagnóstico:
 
@@ -89,6 +90,7 @@ La corrida sintética `gemelo-previsional hito2` no usa HPA y escribe:
 |---|---|
 | `hito2_summary.json` | Configuración, alcance, semilla, supuestos, advertencias y caminos representativos. |
 | `hito2_path_results.csv` | Una fila por escenario y camino Monte Carlo, con saldo final, contribuciones, densidad y meses por estado. |
+| `hito2_person_month_contract.csv` | Trayectorias representativas bajo el contrato persona–mes compartido con HPA. |
 | `hito2_scenario_summary.csv` | Media, desviación, P10, mediana, P90 y comparación con el escenario base. |
 | `hito2_state_occupancy.csv` | Participación de cada estado en los persona–mes simulados. |
 | `hito2_transition_matrices.csv` | Matrices mensuales en formato largo y auditable. |
@@ -97,3 +99,11 @@ La corrida sintética `gemelo-previsional hito2` no usa HPA y escribe:
 | `hito2-results.svg` | Resumen gráfico de distribuciones y trayectorias. |
 
 `scenario` y `path_id` identifican de manera única los resultados. `draw_id` enlaza la misma extracción uniforme entre escenarios y permite interpretar `paired_gap_vs_baseline_uf`. `contribution_density` siempre pertenece a `[0,1]`; los saldos y contribuciones se expresan en UF reales del modelo.
+
+## Contrato persona–mes compartido
+
+Las exportaciones `hpa_person_month_contract.csv` y `hito2_person_month_contract.csv` implementan la versión 1.0 del mismo esquema:
+
+`source`, `person_id`, `period`, `age`, `labor_state`, `potential_wage_uf`, `contribution_uf`, `fund`, `monthly_return`, `opening_balance_uf`, `closing_balance_uf`.
+
+La clave `source/person_id/period` debe ser única. `closing_balance_uf` se valida con la identidad `(opening_balance_uf + contribution_uf) * (1 + monthly_return)`. Las diferencias semánticas entre datos observados y simulados permanecen identificadas en `source` y `labor_state`.

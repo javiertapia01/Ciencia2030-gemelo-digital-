@@ -8,6 +8,8 @@ Esta primera versión simula una vida previsional completa desde los 25 hasta lo
 
 Es un análisis sintético de escenarios. No calibra todavía las transiciones con HPA, no reconstruye los diez Fondos Generacionales y no predice una pensión ni representa a la población chilena.
 
+Desde la integración v0.4, el simulador conserva su generador Markov independiente pero utiliza el mismo núcleo contable y contrato persona–mes que el Experimento I. La arquitectura compartida se documenta en `docs/INDIVIDUAL_CORE.md`.
+
 ## Estados laborales
 
 La cadena de Markov mensual contiene cinco estados antes de la jubilación:
@@ -75,6 +77,7 @@ La configuración base ejecuta 2.000 caminos por escenario con semilla 2030. Se 
 - fracción de caminos bajo la mediana estable;
 - ocupación agregada de cada estado;
 - una trayectoria completa por escenario, elegida por cercanía a la mediana.
+- una exportación de esas trayectorias bajo el contrato persona–mes común con HPA.
 
 La trayectoria representativa no se selecciona por conveniencia: se elige mecánicamente como el camino cuyo saldo final está más cerca de la mediana del escenario.
 

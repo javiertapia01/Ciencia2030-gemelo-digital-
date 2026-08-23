@@ -165,6 +165,7 @@ Su principal fortaleza es la profundidad longitudinal. Sus principales limitacio
 | Ingesta y contratos de datos | Implementado |
 | Panel mensual en UF | Implementado |
 | Motor contable paralelo | Implementado y probado |
+| Núcleo persona–mes compartido HPA/Markov | Implementado y probado |
 | Regla base y sensibilidades | Implementadas |
 | Gate contable obligatorio | Implementado |
 | Diagnóstico mensual de un paso | Implementado y evaluado en muestra de 100 personas |
@@ -269,6 +270,51 @@ gemelo-previsional hito2 --config config/hito2.json --output-dir examples/hito2
 ```
 
 Los parámetros son supuestos de escenarios y no estimaciones HPA. La metodología, las limitaciones y los criterios de validación están en [`docs/MILESTONE2.md`](docs/MILESTONE2.md); los resultados reproducibles se encuentran en [`examples/hito2/`](examples/hito2/README.md).
+
+### Integración entre Experimento I e Hito 2
+
+Ambas rutas mantienen adaptadores separados, pero ahora usan el mismo núcleo contable vectorizado y el contrato persona–mes v1.0. El flujo HPA transforma observaciones históricas; el flujo Markov genera estados sintéticos. Después de esa diferencia, ambos representan persona, mes, estado, salario, cotización, fondo, retorno y saldos con las mismas columnas y validaciones.
+
+```mermaid
+flowchart LR
+    HPA["Panel HPA"] --> AH["Adaptador histórico"]
+    MK["Cadena de Markov"] --> AM["Adaptador sintético"]
+    AH --> PM["Contrato persona–mes"]
+    AM --> PM
+    PM --> CORE["Núcleo contable común"]
+    CORE --> E1["Experimento I"]
+    CORE --> E2["Hito 2"]
+    CORE --> AFP["Futuro nivel AFP"]
+```
+
+La integración asegura coherencia computacional, pero no convierte los supuestos Markov en estimaciones HPA ni abre el gate contable. Consulte [`docs/INDIVIDUAL_CORE.md`](docs/INDIVIDUAL_CORE.md).
+
+#### Cómo usar la integración
+
+Las dos rutas se ejecutan con sus comandos habituales; la integración ocurre internamente y queda expuesta en archivos con el mismo esquema:
+
+| Ruta | Comando | Salida bajo el contrato común |
+|---|---|---|
+| Hito 2 sintético | `gemelo-previsional hito2 --config config/hito2.json --output-dir examples/hito2` | `examples/hito2/hito2_person_month_contract.csv` |
+| Experimento HPA | `gemelo-previsional run --config config/experiment.local.json --sample-size 100 --output-dir output/runs/integracion_hpa_100` | `output/runs/integracion_hpa_100/hpa_person_month_contract.csv` |
+
+Ambos CSV contienen `source`, `person_id`, `period`, `age`, `labor_state`, `potential_wage_uf`, `contribution_uf`, `fund`, `monthly_return`, `opening_balance_uf` y `closing_balance_uf`. Esto permite comparar, auditar o agregar trayectorias sin confundir su procedencia.
+
+Para comprobar específicamente la equivalencia de los dos adaptadores y el núcleo común:
+
+```powershell
+python -m unittest tests.test_individual_core -v
+```
+
+Para conectar una fuente nueva, se construye un `DataFrame` con las columnas de entrada del contrato y se delega el cierre mensual al núcleo:
+
+```python
+from gemelo_previsional.individual_core import post_person_month
+
+person_month_with_closing_balance = post_person_month(person_month_inputs)
+```
+
+No se debe calcular `closing_balance_uf` por separado: `post_person_month` aplica y valida la misma identidad usada por HPA y Markov. Los datos HPA siguen requiriendo acceso autorizado y su `gate` continúa siendo obligatorio.
 
 ## Cómo colabora el equipo en este repositorio
 
@@ -435,6 +481,7 @@ Si el gate falla se genera `GATE_CLOSED.md`. `--force-counterfactual` existe exc
 ## Documentación técnica
 
 - [Metodología implementada](docs/METHODOLOGY.md)
+- [Núcleo individual y contrato persona–mes](docs/INDIVIDUAL_CORE.md)
 - [Metodología del Hito 2](docs/MILESTONE2.md)
 - [Contratos de datos y salidas](docs/DATA_CONTRACTS.md)
 - [Configuración de ejemplo](config/experiment.example.json)

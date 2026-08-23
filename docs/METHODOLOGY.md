@@ -1,5 +1,9 @@
 # Metodología implementada
 
+## Núcleo individual compartido
+
+La reconstrucción HPA y la simulación Markov conservan adaptadores separados, pero ambas aplican `individual_core.accounting_step_vectorized` y pueden expresarse mediante el contrato persona–mes v1.0. Esto garantiza equivalencia computacional de la identidad contable sin mezclar la validez histórica con los supuestos sintéticos. Véase `docs/INDIVIDUAL_CORE.md`.
+
 ## 1. Estimando
 
 El estimando es la diferencia final entre dos reconstrucciones contables de la misma persona:

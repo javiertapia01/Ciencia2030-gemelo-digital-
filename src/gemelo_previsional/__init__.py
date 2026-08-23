@@ -1,3 +1,3 @@
 """Gemelo digital previsional: validación histórica y simulación estocástica."""
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"

@@ -1,5 +1,6 @@
 {
   "experiment_name": "hito_2_gemelo_individual_estocastico_v1",
+  "software_version": "0.4.0",
   "status": "completed",
   "experiment_type": "synthetic_individual_life_course_monte_carlo",
   "methodological_scope": "hito_2_primera_version",
@@ -10,6 +11,8 @@
   "years": 40.0,
   "common_random_numbers": true,
   "common_deterministic_market": true,
+  "shared_accounting_core": "individual_core.accounting_step_vectorized",
+  "person_month_contract_version": "1.0",
   "representative_paths": {
     "estable": "estable_01538",
     "intermitente": "intermitente_01033",

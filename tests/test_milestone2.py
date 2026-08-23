@@ -71,6 +71,7 @@ class Milestone2Tests(unittest.TestCase):
                 "hito2-results.svg",
                 "hito2_market_returns.csv",
                 "hito2_path_results.csv",
+                "hito2_person_month_contract.csv",
                 "hito2_representative_trajectories.csv",
                 "hito2_scenario_summary.csv",
                 "hito2_state_occupancy.csv",
