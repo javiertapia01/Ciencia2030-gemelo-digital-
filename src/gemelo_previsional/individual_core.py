@@ -27,8 +27,12 @@ def accounting_step_vectorized(
     balance: Any,
     contribution: Any,
     monthly_return: Any,
+    *,
+    contribution_timing: str = "start",
 ) -> np.ndarray:
     """Apply the shared accounting identity to scalar or broadcastable array inputs."""
+    if contribution_timing not in {"start", "end"}:
+        raise ValueError("contribution_timing debe ser 'start' o 'end'")
     balances, contributions, returns = np.broadcast_arrays(
         np.asarray(balance, dtype=float),
         np.asarray(contribution, dtype=float),
@@ -44,7 +48,10 @@ def accounting_step_vectorized(
         raise ValueError("Saldo y cotización no pueden ser negativos")
     if bool((returns <= -1).any()):
         raise ValueError("El retorno mensual debe ser mayor que -100%")
-    closing = (balances + contributions) * (1.0 + returns)
+    if contribution_timing == "start":
+        closing = (balances + contributions) * (1.0 + returns)
+    else:
+        closing = balances * (1.0 + returns) + contributions
     if not np.isfinite(closing).all() or bool((closing < 0).any()):
         raise RuntimeError("El núcleo contable produjo saldos inválidos")
     return closing

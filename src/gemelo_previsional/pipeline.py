@@ -231,6 +231,11 @@ def run_experiment(
 
     one_step_config = config["diagnostics"]["one_step"]
     one_step_selection: dict[str, Any] | None = None
+    split_by_person: dict[str, str] = {}
+    configured_variant = (
+        f"current_{config['model']['contribution_timing']}__"
+        f"{config['model']['observed_return_rule']}_{config['model']['return_month']}"
+    )
     if bool(one_step_config["enabled"]):
         _progress("comparando convenciones con residuos mensuales de un paso")
         one_step = run_one_step_diagnostics(
@@ -244,6 +249,18 @@ def run_experiment(
             ),
         )
         one_step_selection = one_step.selection
+        one_step_selection["configured_cumulative_variant"] = configured_variant
+        one_step_selection["configured_variant_matches_selection"] = bool(
+            one_step.selection["selected_variant"] == configured_variant
+        )
+        split_by_person = (
+            one_step.residuals[["correl", "split"]]
+            .drop_duplicates("correl")
+            .assign(correl=lambda frame: frame["correl"].astype(str))
+            .set_index("correl")["split"]
+            .astype(str)
+            .to_dict()
+        )
         _write_json(output_dir / "one_step_selection.json", one_step.selection)
         one_step.variant_summary.to_csv(
             output_dir / "one_step_variant_summary.csv", index=False, encoding="utf-8"
@@ -256,36 +273,116 @@ def run_experiment(
         )
 
     _progress("reconstruyendo trayectorias observadas y escenarios generacionales")
+    write_all_trajectories = bool(config["outputs"]["write_all_trajectories"])
+    trajectory_people: set[str] | None = None
+    if not write_all_trajectories:
+        candidate_people = panel["correl"].astype(str).drop_duplicates()
+        requested_split = str(one_step_config["gate_evaluation_split"])
+        if split_by_person and requested_split != "all":
+            candidate_people = candidate_people[
+                candidate_people.map(split_by_person).eq(requested_split)
+            ]
+        trajectory_count = min(
+            int(config["outputs"]["manual_trajectory_people"]), len(candidate_people)
+        )
+        trajectory_people = set(
+            candidate_people.sample(
+                n=trajectory_count,
+                random_state=int(config["population"]["sample_seed"]),
+            ).tolist()
+        )
     simulation = simulate_panel(
         panel,
         sensitivity_cuts=config["model"]["sensitivity_cuts"],
         minimum_history_months=int(config["population"]["minimum_history_months"]),
+        contribution_timing=str(config["model"]["contribution_timing"]),
+        observed_return_rule=str(config["model"]["observed_return_rule"]),
+        return_month=str(config["model"]["return_month"]),
+        trajectory_people=trajectory_people,
     )
     if simulation.individual.empty:
         raise RuntimeError("Ninguna persona cumple los requisitos de historia continua")
     simulation.exclusions.to_csv(
         output_dir / "exclusions.csv", index=False, encoding="utf-8"
     )
-    validation = validation_summary(simulation.validation_errors, config["validation"])
+    evaluation_split = str(one_step_config["gate_evaluation_split"])
+    validation_errors = simulation.validation_errors.copy()
+    individual = simulation.individual.copy()
+    trajectories = simulation.trajectories.copy()
+    if split_by_person:
+        validation_errors["evaluation_split"] = (
+            validation_errors["correl"].astype(str).map(split_by_person)
+        )
+        individual["evaluation_split"] = individual["correl"].astype(str).map(
+            split_by_person
+        )
+        if not trajectories.empty:
+            trajectories["evaluation_split"] = trajectories["correl"].astype(str).map(
+                split_by_person
+            )
+    else:
+        evaluation_split = "all"
+        validation_errors["evaluation_split"] = "all"
+        individual["evaluation_split"] = "all"
+        if not trajectories.empty:
+            trajectories["evaluation_split"] = "all"
+
+    if evaluation_split == "all":
+        gate_errors = validation_errors
+        published_individual = individual
+        published_trajectories = trajectories
+    else:
+        gate_errors = validation_errors[
+            validation_errors["evaluation_split"].eq(evaluation_split)
+        ].copy()
+        published_individual = individual[
+            individual["evaluation_split"].eq(evaluation_split)
+        ].copy()
+        published_ids = set(published_individual["correl"].astype(str))
+        published_trajectories = (
+            trajectories[
+                trajectories["correl"].astype(str).isin(published_ids)
+            ].copy()
+            if not trajectories.empty
+            else trajectories
+        )
+    if published_individual.empty:
+        raise RuntimeError(
+            f"Ninguna persona elegible pertenece al split de evaluación {evaluation_split!r}"
+        )
+
+    validation = validation_summary(gate_errors, config["validation"])
+    convention_matches = bool(
+        one_step_selection is None
+        or one_step_selection["configured_variant_matches_selection"]
+    )
+    validation["evaluation_split"] = evaluation_split
+    validation["people"] = int(gate_errors["correl"].nunique())
+    validation["checks"]["configured_variant_matches_calibration_selection"] = (
+        convention_matches
+    )
+    validation["gate_passed"] = bool(
+        validation["gate_passed"] and convention_matches
+    )
     _write_json(output_dir / "validation_summary.json", validation)
     gate_passed = bool(validation["gate_passed"])
     calculate_outputs = gate_passed or force_counterfactual
     _write_validation_outputs(
         output_dir,
-        simulation.validation_errors,
-        simulation.trajectories,
+        gate_errors,
+        published_trajectories,
         manual_people=int(config["outputs"]["manual_trajectory_people"]),
         seed=int(config["population"]["sample_seed"]),
-        write_all=bool(config["outputs"]["write_all_trajectories"]),
+        write_all=write_all_trajectories,
         include_counterfactual=calculate_outputs,
     )
 
     if calculate_outputs:
         _progress("calculando métricas poblacionales, sensibilidad y heterogeneidad")
-        simulation.individual.to_csv(
+        published_individual.to_csv(
             output_dir / "individual_results.csv", index=False, encoding="utf-8"
         )
-        population = population_summary(simulation.individual, "base", config["inference"])
+        population = population_summary(published_individual, "base", config["inference"])
         population["interpretation_allowed"] = gate_passed
         population["warning"] = (
             None
@@ -294,12 +391,12 @@ def run_experiment(
         )
         _write_json(output_dir / "population_summary.json", population)
         sensitivity_summary(
-            simulation.individual, list(config["model"]["sensitivity_cuts"])
+            published_individual, list(config["model"]["sensitivity_cuts"])
         ).to_csv(output_dir / "sensitivity_summary.csv", index=False, encoding="utf-8")
-        stratification_table(simulation.individual, "base").to_csv(
+        stratification_table(published_individual, "base").to_csv(
             output_dir / "stratification.csv", index=False, encoding="utf-8"
         )
-        ols_hc3(simulation.individual, "base").to_csv(
+        ols_hc3(published_individual, "base").to_csv(
             output_dir / "regression_ols_hc3.csv", index=False, encoding="utf-8"
         )
 
@@ -332,7 +429,9 @@ def run_experiment(
             "duration_seconds": duration,
             "output_directory": str(output_dir),
             "gate_passed": gate_passed,
-            "eligible_people": int(len(simulation.individual)),
+            "eligible_people": int(len(published_individual)),
+            "eligible_people_all_splits": int(len(simulation.individual)),
+            "gate_evaluation_split": evaluation_split,
             "one_step_diagnostic": one_step_selection,
         }
     )
@@ -341,7 +440,8 @@ def run_experiment(
     return {
         "status": status,
         "gate_passed": gate_passed,
-        "eligible_people": int(len(simulation.individual)),
+        "eligible_people": int(len(published_individual)),
+        "eligible_people_all_splits": int(len(simulation.individual)),
         "one_step_selected_variant": (
             one_step_selection["selected_variant"] if one_step_selection else None
         ),

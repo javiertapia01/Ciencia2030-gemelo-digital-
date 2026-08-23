@@ -16,10 +16,10 @@ Ingresos, cotizaciones derivadas, condición inicial y retornos de mercado son i
 
 - Frecuencia: mensual, identificada como `AAAA-MM`.
 - Saldo reportado: tratado como saldo en la fecha mensual de observación.
-- Aporte: entra al comienzo del mes antes de aplicar el retorno.
+- Convención HPA congelada: el saldo de apertura recibe el retorno real del mes siguiente, ponderado por los saldos positivos A–E reportados en ese mes; la cotización del mes actual se acredita al cierre, después del retorno. Esta convención fue seleccionada solo en calibración entre 24 candidatas y luego validada sin reajuste.
 - UF: valor del último día calendario de cada mes. Esta elección hace consistente un retorno real deflactado por UF con saldos de fin de mes expresados como pesos/UF.
 - Nacimiento: se documenta día convencional 15. Como la base y el modelo trabajan a frecuencia mensual, la edad entera se obtiene con la diferencia de meses entre `fecha_nac=AAAAMM` y el período.
-- Ventana activa inicial: 2008-01 a 2025-12, donde existen saldos HPA y retornos A–E.
+- Ventana validada del Experimento I: 2008-01 a 2020-07. La HPA y los retornos continúan hasta 2025-12, pero desde agosto de 2020 los retiros extraordinarios introducen salidas de la CCICO que no están observadas como flujo en este modelo. Según la Superintendencia de Pensiones, el [primer retiro](https://www.spensiones.cl/portal/institucional/594/w3-article-14028.html) comenzó a regir el 30 de julio de 2020; el [segundo](https://www.spensiones.cl/portal/institucional/594/w3-article-14331.html), el 10 de diciembre de 2020; y el [tercero](https://www.spensiones.cl/portal/institucional/594/w3-propertyvalue-10419.html), el 28 de abril de 2021. El límite temporal se fija por esos hechos externos, no por el signo del contrafactual.
 
 ## 3. Variables
 
@@ -57,11 +57,11 @@ Para cada persona se selecciona el tramo continuo válido más largo. Una brecha
 
 ## 5. Gate contable
 
-Desde el saldo inicial reportado se reconstruye acumulativamente el saldo observado con las cotizaciones derivadas y el retorno del fondo observado. Para cada mes se calcula:
+Desde el saldo inicial reportado se reconstruye acumulativamente el saldo observado con las cotizaciones derivadas y el retorno ponderado observado. Para cada mes se calcula:
 
 `error_relativo = (saldo_reconstruido − saldo_reportado) / saldo_reportado`.
 
-La evaluación excluye saldos inferiores al mínimo configurable en UF para reducir la dominancia mecánica del redondeo de $50.000. El gate exige simultáneamente:
+La evaluación excluye saldos inferiores al mínimo configurable en UF para reducir la dominancia mecánica del redondeo de $50.000. Las personas se separan de forma determinista antes de seleccionar la convención. El gate acumulativo se calcula solo sobre el split de validación; las personas de calibración no se publican en los resultados del experimento. Además, la convención configurada debe coincidir con la elegida en calibración. El gate exige simultáneamente:
 
 1. observaciones suficientes;
 2. mediana del error absoluto bajo el umbral;
@@ -80,7 +80,7 @@ El signo es saldo reportado menos saldo predicho. La comparación usa una muestr
 
 La partición se hace por persona, nunca por fila, de forma determinista con una semilla documentada. La variante con menor mediana del residuo relativo absoluto en calibración se congela y se evalúa en validación. La estratificación posterior utiliza solo validación y cubre año, edad, AFP, fondo, transferencias, etapa laboral, cercanía a fallecimiento, densidad y remuneración.
 
-Este diagnóstico localiza convenciones o periodos problemáticos, pero no sustituye el gate acumulativo. Una variante favorable solo puede pasar al motor después de una decisión metodológica explícita y una nueva validación fuera de calibración.
+Este diagnóstico localiza convenciones o periodos problemáticos, pero no sustituye el gate acumulativo. La variante `current_end__weighted_next` pasó al motor después de la selección en calibración. La validación acumulativa se ejecuta exclusivamente sobre personas no usadas en esa selección.
 
 ## 7. Inferencia
 
@@ -93,4 +93,4 @@ Estas herramientas describen heterogeneidad e incertidumbre muestral de la HPA. 
 
 ## 8. Riesgos de interpretación
 
-La identidad simplificada no incluye retiros, pagos de pensión, bonos, rezagos de acreditación, movimientos administrativos ni otros flujos que puedan afectar el saldo CCICO. Precisamente por eso el gate no es decorativo: si esos componentes impiden reconstruir el observado con error acotado, el efecto contrafactual no se interpreta.
+La identidad simplificada no incluye retiros, pagos de pensión, bonos, rezagos de acreditación, movimientos administrativos ni otros flujos que puedan afectar el saldo CCICO. Precisamente por eso el gate no es decorativo: si esos componentes impiden reconstruir el observado con error acotado, el efecto contrafactual no se interpreta. Los resultados validados no deben extrapolarse al periodo agosto de 2020–diciembre de 2025 ni tratarse como una estimación del efecto futuro de la reforma.

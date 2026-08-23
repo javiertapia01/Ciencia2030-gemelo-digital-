@@ -26,7 +26,7 @@ flowchart LR
 | `age` | Edad al comienzo del mes. |
 | `labor_state` | Estado laboral observable o simulado. |
 | `potential_wage_uf` | Remuneración potencial mensual en UF. |
-| `contribution_uf` | Cotización aplicada al comienzo del mes. |
+| `contribution_uf` | Cotización aplicada al inicio o al cierre, según la convención documentada por el motor. |
 | `fund` | Fondo A–E observado o asignado por la proxy. |
 | `monthly_return` | Retorno mensual del fondo seleccionado, en tanto por uno. |
 | `opening_balance_uf` | Saldo al comienzo del paso contable. |
@@ -39,10 +39,13 @@ La clave es `source/person_id/period`. El contrato exige valores finitos, saldos
 `individual_core.accounting_step_vectorized` implementa para escalares y arreglos:
 
 \[
-B_{t+1}=(B_t+C_t)(1+r_t)
+B_{t+1}=\begin{cases}
+(B_t+C_t)(1+r_t), & \text{cotización al inicio}\\
+B_t(1+r_t)+C_t, & \text{cotización al cierre}
+\end{cases}
 \]
 
-`model.accounting_step`, usado por el flujo HPA, delega en esta función. El simulador Markov la invoca directamente sobre todos sus caminos de un mes. Por ello, entradas idénticas producen exactamente el mismo saldo en ambos motores.
+`model.accounting_step`, usado por el flujo HPA, delega en esta función. El simulador Markov la invoca directamente sobre todos sus caminos de un mes. El núcleo admite acreditación de la cotización al inicio o al cierre; Markov conserva el inicio y el Experimento I usa el cierre según su validación temporal. Con la misma convención e inputs, ambos motores producen exactamente el mismo saldo.
 
 ## Adaptador HPA
 

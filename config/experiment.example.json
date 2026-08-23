@@ -8,7 +8,7 @@
   },
   "window": {
     "start": "2008-01",
-    "end": "2025-12"
+    "end": "2020-07"
   },
   "population": {
     "ids": [],
@@ -18,7 +18,9 @@
   },
   "model": {
     "contribution_rate": 0.10,
-    "contribution_timing": "start_of_month",
+    "contribution_timing": "end",
+    "observed_return_rule": "weighted",
+    "return_month": "next",
     "birth_day_convention": 15,
     "uf_convention": "calendar_month_end",
     "observed_fund_rule": "largest_positive_balance",
@@ -42,7 +44,8 @@
       "enabled": true,
       "calibration_share": 0.5,
       "split_seed": 2030,
-      "large_relative_residual_threshold": 0.10
+      "large_relative_residual_threshold": 0.10,
+      "gate_evaluation_split": "validation"
     }
   },
   "inference": {

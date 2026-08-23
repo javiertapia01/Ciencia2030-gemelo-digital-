@@ -8,7 +8,7 @@ from typing import Any
 
 DEFAULT_CONFIG: dict[str, Any] = {
     "experiment_name": "experimento_i_asignacion_generacional",
-    "window": {"start": "2008-01", "end": "2025-12"},
+    "window": {"start": "2008-01", "end": "2020-07"},
     "population": {
         "ids": [],
         "sample_size": None,
@@ -17,7 +17,9 @@ DEFAULT_CONFIG: dict[str, Any] = {
     },
     "model": {
         "contribution_rate": 0.10,
-        "contribution_timing": "start_of_month",
+        "contribution_timing": "end",
+        "observed_return_rule": "weighted",
+        "return_month": "next",
         "birth_day_convention": 15,
         "uf_convention": "calendar_month_end",
         "observed_fund_rule": "largest_positive_balance",
@@ -42,6 +44,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
             "calibration_share": 0.5,
             "split_seed": 2030,
             "large_relative_residual_threshold": 0.10,
+            "gate_evaluation_split": "validation",
         }
     },
     "inference": {
@@ -102,8 +105,14 @@ def validate_config(config: dict[str, Any]) -> None:
     rate = float(config["model"]["contribution_rate"])
     if not 0 < rate <= 1:
         raise ConfigurationError("model.contribution_rate debe estar en (0, 1]")
-    if config["model"]["contribution_timing"] != "start_of_month":
-        raise ConfigurationError("Esta versión solo admite contribution_timing=start_of_month")
+    if config["model"]["contribution_timing"] not in {"start", "end"}:
+        raise ConfigurationError("model.contribution_timing debe ser 'start' o 'end'")
+    if config["model"]["observed_return_rule"] not in {"dominant", "weighted"}:
+        raise ConfigurationError(
+            "model.observed_return_rule debe ser 'dominant' o 'weighted'"
+        )
+    if config["model"]["return_month"] not in {"current", "next"}:
+        raise ConfigurationError("model.return_month debe ser 'current' o 'next'")
     if config["model"]["observed_fund_rule"] != "largest_positive_balance":
         raise ConfigurationError(
             "Esta versión solo admite observed_fund_rule=largest_positive_balance"
@@ -143,6 +152,14 @@ def validate_config(config: dict[str, Any]) -> None:
     if float(one_step["large_relative_residual_threshold"]) < 0:
         raise ConfigurationError(
             "diagnostics.one_step.large_relative_residual_threshold no puede ser negativo"
+        )
+    if one_step["gate_evaluation_split"] not in {"all", "calibration", "validation"}:
+        raise ConfigurationError(
+            "diagnostics.one_step.gate_evaluation_split debe ser all, calibration o validation"
+        )
+    if not bool(one_step["enabled"]) and one_step["gate_evaluation_split"] != "all":
+        raise ConfigurationError(
+            "gate_evaluation_split debe ser 'all' cuando el diagnóstico está desactivado"
         )
 
     sample_size = config["population"].get("sample_size")

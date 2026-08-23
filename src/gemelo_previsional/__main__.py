@@ -22,6 +22,14 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--output-dir", help="Directorio de corrida (debe no existir o estar vacío)")
     run.add_argument("--sample-size", type=int, help="Sobrescribe el tamaño de muestra")
     run.add_argument(
+        "--skip-one-step-diagnostics",
+        action="store_true",
+        help=(
+            "Omite la comparación exploratoria de 24 variantes; usar solo después de "
+            "congelar y validar la convención en una corrida separada"
+        ),
+    )
+    run.add_argument(
         "--force-counterfactual",
         action="store_true",
         help="Calcula resultados aunque falle el gate; quedan marcados como no interpretables",
@@ -72,6 +80,9 @@ def main(argv: list[str] | None = None) -> int:
                 if args.sample_size <= 0:
                     raise ConfigurationError("--sample-size debe ser positivo")
                 config["population"]["sample_size"] = args.sample_size
+            if args.skip_one_step_diagnostics:
+                config["diagnostics"]["one_step"]["enabled"] = False
+                config["diagnostics"]["one_step"]["gate_evaluation_split"] = "all"
             result = run_experiment(
                 config,
                 output_dir=Path(args.output_dir).resolve() if args.output_dir else None,

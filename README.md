@@ -2,7 +2,7 @@
 
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Tests](https://github.com/javiertapia01/Ciencia2030-gemelo-digital-/actions/workflows/tests.yml/badge.svg)](https://github.com/javiertapia01/Ciencia2030-gemelo-digital-/actions/workflows/tests.yml)
-[![Estado metodológico](https://img.shields.io/badge/gate%20contable-cerrado-orange)](#estado-actual)
+[![Estado metodológico](https://img.shields.io/badge/gate%20contable-validado-brightgreen)](#estado-actual)
 
 > Proyecto desarrollado como parte del **Desafío Ciencia en Acción UC de Ciencia 2030**, sobre Fondos Generacionales, gestión de riesgo y el mecanismo de premios y castigos del sistema previsional chileno.
 
@@ -40,8 +40,10 @@ No buscamos todavía afirmar cuál será el efecto completo de la reforma ni rec
 El experimento aplica dos veces la misma identidad contable mensual:
 
 \[
-B_{i,t+1}=(B_{i,t}+C_{i,t})(1+r_{F_{i,t},t})
+B_{i,t+1}=B_{i,t}(1+r^{mundo}_{i,t+1})+C_{i,t}
 \]
+
+La cotización del mes actual se acredita al cierre y el saldo de apertura recibe el retorno del mes siguiente. En el mundo observado, el retorno se pondera por los saldos A–E reportados; en el contrafactual se usa el retorno del fondo proxy asignado para ese mes. Esta convención fue elegida en calibración y congelada antes de la validación acumulativa.
 
 Para una misma persona se construyen dos mundos paralelos:
 
@@ -169,25 +171,19 @@ Su principal fortaleza es la profundidad longitudinal. Sus principales limitacio
 | Regla base y sensibilidades | Implementadas |
 | Gate contable obligatorio | Implementado |
 | Diagnóstico mensual de un paso | Implementado y evaluado en muestra de 100 personas |
-| Inferencia y estratificación | Implementadas, bloqueadas hasta pasar el gate |
+| Inferencia y estratificación | Implementadas y ejecutadas sobre la cohorte elegible |
 | Demo toy sin datos confidenciales | Implementada |
-| Validación empírica HPA | En diagnóstico |
+| Validación empírica HPA | Gate aprobado en validación reservada y cohorte completa |
 | Hito 2: nivel individual estocástico | Implementado en primera versión sintética |
 | Nivel AFP | No iniciado en este repositorio |
 
-En una corrida reproducible de diagnóstico sobre 100 personas seleccionadas:
+El Experimento I se completó en dos etapas. En una muestra reproducible de 100 personas, la comparación de 24 variantes eligió solo en calibración la cotización actual al cierre y el retorno ponderado del mes siguiente. Sin reajustarla, el gate acumulativo pasó en 38 personas reservadas para validación: error absoluto mediano 1,74%, error terminal 2,22% y deriva anual −0,037 puntos porcentuales.
 
-- 83 tuvieron una historia continua elegible;
-- se evaluaron 11.565 transiciones persona–mes;
-- la mediana global del error absoluto fue 6,7%;
-- la mediana del error absoluto en los últimos 12 meses fue 30,1%;
-- la deriva anual del error fue 2,6 puntos porcentuales.
+Con esa convención congelada se ejecutó la cohorte completa entre 2008-01 y 2020-07. Entraron 26.172 personas elegibles y 2.899.369 observaciones del gate. Los cuatro controles pasaron: error absoluto mediano 2,18%, error terminal 2,99% y deriva anual −0,081 puntos porcentuales.
 
-El resultado metodológicamente correcto fue **`gate_closed`**. El sistema no publicó diferencias contrafactuales HPA. Esto muestra que el control funciona: todavía no corresponde presentar ganadores, pérdidas o un efecto promedio con datos reales.
+En el escenario base, la diferencia mediana fue **−0,452 UF (−0,789%)** y 31,39% de las personas terminó con un saldo mayor bajo la regla proxy. El IC bootstrap 95% de la mediana fue [−0,482; −0,415] UF. La media en UF fue positiva (+3,533 UF) por una cola de ganancias absolutas grandes, mientras la media relativa también fue negativa (−0,835%); por eso el resultado se comunica como distribución y no como una sola media.
 
-Sobre la misma selección reproducible, el nuevo diagnóstico comparó 24 convenciones en 11.514 transiciones comunes. La variante elegida únicamente con calibración fue cotización del mes actual al final del periodo y retorno del mes siguiente ponderado por saldos A–E. Su mediana de residuo relativo absoluto fue 0,45% en calibración y 0,32% en validación, frente a 2,11% y 1,93% de la convención base. En validación, el percentil 90 fue 2,79%, pero 2,6% de las transiciones todavía superó 10% y permanecen casos extremos asociados a caídas abruptas de saldo.
-
-Este resultado identifica una convención temporal prometedora; no autoriza reemplazarla automáticamente en el motor. Primero deben explicarse los casos extremos y luego repetirse el gate acumulativo fuera de calibración.
+La ventana termina antes de los retiros extraordinarios, que introducen salidas no observadas por la identidad contable. La descripción completa, sensibilidad y límites están en [`docs/EXPERIMENT1_RESULTS.md`](docs/EXPERIMENT1_RESULTS.md).
 
 ## Diagnóstico contable de un paso
 
@@ -214,9 +210,9 @@ También informa por separado:
 
 Las personas se asignan de forma determinista y sin solapamiento a calibración o validación. La variante se elige solo por la menor mediana del residuo relativo absoluto en calibración y luego se reporta congelada en validación. Nunca se elige según qué configuración produzca el resultado contrafactual más atractivo.
 
-El próximo paso empírico es clasificar las caídas abruptas y demás casos extremos, revisar sus trayectorias y determinar si corresponden a retiros, pagos, movimientos administrativos u otra ruptura del dominio contable. Solo después corresponde decidir si la evidencia justifica modificar una convención del motor. Cualquier modificación exige repetir el gate acumulativo en personas no usadas para calibrar.
+Las caídas sincronizadas desde agosto de 2020 se clasificaron como rupturas del dominio por los retiros extraordinarios, un flujo no observado por la ecuación. Por eso la ventana validada termina en 2020-07. La convención seleccionada en calibración se incorporó al motor y el gate acumulativo se repitió primero en personas reservadas y luego en la cohorte completa.
 
-## Qué entregará el experimento cuando el gate pase
+## Qué entrega el experimento validado
 
 | Pregunta del equipo | Salida |
 |---|---|
@@ -240,7 +236,7 @@ El próximo paso empírico es clasificar las caídas abruptas y demás casos ext
 
 ## Demo toy para comprender las salidas
 
-La demo sintética existe para que el equipo pueda explorar la herramienta mientras el gate HPA permanece cerrado. Usa 800 personas artificiales, un mercado determinista de 10 años y no contiene información confidencial.
+La demo sintética permite explorar la herramienta sin acceso a datos HPA. Usa 800 personas artificiales, un mercado determinista de 10 años y no contiene información confidencial.
 
 ```bash
 gemelo-previsional toy --output-dir examples/toy --people 800 --months 120 --seed 2030
@@ -423,11 +419,17 @@ En PowerShell:
 gemelo-previsional run --config config/experiment.local.json --sample-size 100 --output-dir output/runs/demo_100
 ```
 
-Solo después de pasar el gate en una muestra de calibración y otra de validación corresponde ejecutar el panel completo.
+Solo después de pasar el gate en una muestra de calibración y otra de validación corresponde ejecutar el panel completo. Como la convención ya queda congelada, la corrida completa omite la tabla exploratoria de 24 variantes para evitar materializar varios gigabytes de residuos:
+
+```powershell
+gemelo-previsional run --config config/experiment.local.json --skip-one-step-diagnostics --output-dir output/runs/experimento_i_completo
+```
+
+Esta opción no omite el gate acumulativo, las sensibilidades ni la inferencia. No debe usarse antes de completar y conservar una corrida separada de calibración/validación.
 
 ## Salidas de una corrida HPA
 
-Siempre se generan archivos de auditoría:
+Según la fase, se generan los siguientes archivos de auditoría:
 
 | Salida | Uso |
 |---|---|
@@ -436,10 +438,10 @@ Siempre se generan archivos de auditoría:
 | `validation_summary.json` | Resultado y umbrales del gate. |
 | `validation_errors_by_month.csv` | Evolución temporal del error contable. |
 | `validation_errors_sample.csv` | Ejemplos de errores persona–mes. |
-| `one_step_selection.json` | Variante elegida en calibración y métricas congeladas de validación. |
-| `one_step_variant_summary.csv` | Comparación de las 24 convenciones por partición. |
-| `one_step_residuals.csv` | Residuo mensual base y seleccionado; marca el primer error grande por persona. |
-| `one_step_stratification.csv` | Errores de validación por año, edad, AFP, fondo, densidad y remuneración. |
+| `one_step_selection.json` | Variante elegida en calibración y métricas congeladas de validación; se genera cuando el diagnóstico está activo. |
+| `one_step_variant_summary.csv` | Comparación de las 24 convenciones por partición; solo en la fase diagnóstica. |
+| `one_step_residuals.csv` | Residuo mensual base y seleccionado; solo en la fase diagnóstica. |
+| `one_step_stratification.csv` | Errores de validación por año, edad, AFP, fondo, densidad y remuneración; solo en la fase diagnóstica. |
 | `manual_trajectories.csv` | Historias para revisión humana. |
 | `exclusions.csv` | Personas excluidas y motivo. |
 
@@ -475,12 +477,14 @@ Si el gate falla se genera `GATE_CLOSED.md`. `--force-counterfactual` existe exc
 - Los montos están redondeados y las fechas tienen precisión mensual.
 - La muestra no se expande al universo nacional.
 - Los fondos A–E son proxies y no los Fondos Generacionales definitivos.
+- La ventana validada termina en julio de 2020 y no cubre los retiros extraordinarios posteriores.
 - El Experimento I mide saldo CCICO; no estima todavía la pensión total.
 - Una asociación o diferencia dentro del modelo no autoriza por sí sola una recomendación sobre la reforma.
 
 ## Documentación técnica
 
 - [Metodología implementada](docs/METHODOLOGY.md)
+- [Resultados validados del Experimento I](docs/EXPERIMENT1_RESULTS.md)
 - [Núcleo individual y contrato persona–mes](docs/INDIVIDUAL_CORE.md)
 - [Metodología del Hito 2](docs/MILESTONE2.md)
 - [Contratos de datos y salidas](docs/DATA_CONTRACTS.md)

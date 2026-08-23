@@ -27,6 +27,12 @@ class IndividualCoreTests(unittest.TestCase):
         np.testing.assert_allclose(vector, [115.5, 180.0])
         with self.assertRaisesRegex(ValueError, "mayor que -100%"):
             accounting_step_vectorized([100.0], [10.0], [-1.0])
+        end_posting = accounting_step_vectorized(
+            100.0, 10.0, 0.05, contribution_timing="end"
+        )
+        self.assertAlmostEqual(float(end_posting), 115.0)
+        with self.assertRaisesRegex(ValueError, "contribution_timing"):
+            accounting_step_vectorized(100.0, 10.0, 0.05, contribution_timing="middle")
 
     def test_hpa_and_markov_engines_import_the_same_kernel(self):
         self.assertIs(

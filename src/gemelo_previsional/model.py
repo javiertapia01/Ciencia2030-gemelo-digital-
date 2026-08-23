@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from .individual_core import accounting_step_vectorized
-from .io import FUNDS
+from .io import BALANCE_COLUMNS, FUNDS
 
 
 def generational_fund(age: int | float, cuts: list[int] | tuple[int, int, int, int]) -> str:
@@ -24,9 +24,60 @@ def generational_fund(age: int | float, cuts: list[int] | tuple[int, int, int, i
     return "E"
 
 
-def accounting_step(balance: float, contribution: float, monthly_return: float) -> float:
-    """B[t+1] = (B[t] + C[t]) * (1 + r[t])."""
-    return float(accounting_step_vectorized(balance, contribution, monthly_return))
+def accounting_step(
+    balance: float,
+    contribution: float,
+    monthly_return: float,
+    *,
+    contribution_timing: str = "start",
+) -> float:
+    """Apply one monthly posting with contribution at the configured boundary."""
+    return float(
+        accounting_step_vectorized(
+            balance,
+            contribution,
+            monthly_return,
+            contribution_timing=contribution_timing,
+        )
+    )
+
+
+def observed_return(row: Any, rule: str) -> float:
+    """Return the dominant-fund or reported-balance-weighted market return."""
+    if rule == "dominant":
+        fund = str(row.observed_fund)
+        if fund not in FUNDS:
+            return np.nan
+        value = getattr(row, f"return_{fund}", np.nan)
+        return float(value) if pd.notna(value) else np.nan
+    if rule != "weighted":
+        raise ValueError("observed_return_rule debe ser 'dominant' o 'weighted'")
+
+    balances = np.array(
+        [
+            max(float(getattr(row, column)), 0.0)
+            if pd.notna(getattr(row, column, np.nan))
+            else 0.0
+            for column in BALANCE_COLUMNS
+        ],
+        dtype=float,
+    )
+    total = float(balances.sum())
+    if not np.isfinite(total) or total <= 0:
+        return np.nan
+    returns = np.array(
+        [
+            float(getattr(row, f"return_{fund}"))
+            if pd.notna(getattr(row, f"return_{fund}", np.nan))
+            else np.nan
+            for fund in FUNDS
+        ],
+        dtype=float,
+    )
+    positive = balances > 0
+    if not np.isfinite(returns[positive]).all():
+        return np.nan
+    return float(np.dot(balances[positive] / total, returns[positive]))
 
 
 def longest_valid_segment(group: pd.DataFrame) -> pd.DataFrame:
@@ -57,7 +108,17 @@ def simulate_panel(
     panel: pd.DataFrame,
     sensitivity_cuts: dict[str, list[int]],
     minimum_history_months: int,
+    contribution_timing: str = "start",
+    observed_return_rule: str = "dominant",
+    return_month: str = "current",
+    trajectory_people: set[str] | None = None,
 ) -> SimulationOutputs:
+    if contribution_timing not in {"start", "end"}:
+        raise ValueError("contribution_timing debe ser 'start' o 'end'")
+    if observed_return_rule not in {"dominant", "weighted"}:
+        raise ValueError("observed_return_rule debe ser 'dominant' o 'weighted'")
+    if return_month not in {"current", "next"}:
+        raise ValueError("return_month debe ser 'current' o 'next'")
     individual_records: list[dict[str, Any]] = []
     error_records: list[dict[str, Any]] = []
     trajectory_records: list[dict[str, Any]] = []
@@ -68,6 +129,7 @@ def simulate_panel(
         raise ValueError("sensitivity_cuts debe contener un escenario llamado 'base'")
 
     for correl, complete_group in panel.groupby("correl", sort=False, observed=True):
+        retain_trajectory = trajectory_people is None or str(correl) in trajectory_people
         group = longest_valid_segment(complete_group).sort_values("period_ordinal")
         if len(group) < minimum_history_months:
             exclusion_records.append(
@@ -83,9 +145,12 @@ def simulate_panel(
         reconstructed_observed = float(rows[0].balance_uf)
         what_if = {name: reconstructed_observed for name in scenario_names}
         valid_pairs = 0
-        trajectory_records.append(
-            _trajectory_record(rows[0], reconstructed_observed, what_if, sensitivity_cuts, None)
-        )
+        if retain_trajectory:
+            trajectory_records.append(
+                _trajectory_record(
+                    rows[0], reconstructed_observed, what_if, sensitivity_cuts, None
+                )
+            )
 
         stopped_reason: str | None = None
         for position in range(len(rows) - 1):
@@ -96,13 +161,17 @@ def simulate_panel(
                 break
 
             observed_fund = str(current.observed_fund)
-            observed_return = getattr(current, f"return_{observed_fund}")
-            if pd.isna(observed_return):
+            return_row = current if return_month == "current" else following
+            observed_return_value = observed_return(return_row, observed_return_rule)
+            if pd.isna(observed_return_value):
                 stopped_reason = f"retorno_observado_ausente_{observed_fund}"
                 break
             contribution = float(current.contribution_uf)
             predicted_observed = accounting_step(
-                reconstructed_observed, contribution, float(observed_return)
+                reconstructed_observed,
+                contribution,
+                float(observed_return_value),
+                contribution_timing=contribution_timing,
             )
             reported_next = float(following.balance_uf)
             relative_error = (
@@ -127,25 +196,29 @@ def simulate_panel(
             valid_pairs += 1
 
             for name, cuts in sensitivity_cuts.items():
-                assigned_fund = generational_fund(int(current.age), cuts)
-                assigned_return = getattr(current, f"return_{assigned_fund}")
+                assigned_fund = generational_fund(int(return_row.age), cuts)
+                assigned_return = getattr(return_row, f"return_{assigned_fund}")
                 if pd.isna(assigned_return):
                     stopped_reason = f"retorno_what_if_ausente_{assigned_fund}"
                     break
                 what_if[name] = accounting_step(
-                    what_if[name], contribution, float(assigned_return)
+                    what_if[name],
+                    contribution,
+                    float(assigned_return),
+                    contribution_timing=contribution_timing,
                 )
             if stopped_reason:
                 break
-            trajectory_records.append(
-                _trajectory_record(
-                    following,
-                    reconstructed_observed,
-                    what_if,
-                    sensitivity_cuts,
-                    relative_error,
+            if retain_trajectory:
+                trajectory_records.append(
+                    _trajectory_record(
+                        following,
+                        reconstructed_observed,
+                        what_if,
+                        sensitivity_cuts,
+                        relative_error,
+                    )
                 )
-            )
 
         if stopped_reason:
             exclusion_records.append(
