@@ -34,6 +34,14 @@
     "max_final_window_median_absolute_relative_error": 0.10,
     "max_absolute_annual_drift": 0.005
   },
+  "diagnostics": {
+    "one_step": {
+      "enabled": true,
+      "calibration_share": 0.5,
+      "split_seed": 2030,
+      "large_relative_residual_threshold": 0.10
+    }
+  },
   "inference": {
     "bootstrap_iterations": 2000,
     "bootstrap_seed": 2030,

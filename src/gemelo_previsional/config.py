@@ -36,6 +36,14 @@ DEFAULT_CONFIG: dict[str, Any] = {
         "max_final_window_median_absolute_relative_error": 0.10,
         "max_absolute_annual_drift": 0.005,
     },
+    "diagnostics": {
+        "one_step": {
+            "enabled": True,
+            "calibration_share": 0.5,
+            "split_seed": 2030,
+            "large_relative_residual_threshold": 0.10,
+        }
+    },
     "inference": {
         "bootstrap_iterations": 2000,
         "bootstrap_seed": 2030,
@@ -123,6 +131,19 @@ def validate_config(config: dict[str, Any]) -> None:
     ):
         if float(validation[key]) < 0:
             raise ConfigurationError(f"validation.{key} no puede ser negativo")
+
+    one_step = config["diagnostics"]["one_step"]
+    calibration_share = float(one_step["calibration_share"])
+    if not 0 < calibration_share < 1:
+        raise ConfigurationError(
+            "diagnostics.one_step.calibration_share debe estar entre 0 y 1"
+        )
+    if int(one_step["split_seed"]) < 0:
+        raise ConfigurationError("diagnostics.one_step.split_seed no puede ser negativo")
+    if float(one_step["large_relative_residual_threshold"]) < 0:
+        raise ConfigurationError(
+            "diagnostics.one_step.large_relative_residual_threshold no puede ser negativo"
+        )
 
     sample_size = config["population"].get("sample_size")
     if sample_size is not None and int(sample_size) <= 0:

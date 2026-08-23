@@ -34,7 +34,8 @@ def accounting_step(balance: float, contribution: float, monthly_return: float) 
     return (balance + contribution) * (1.0 + monthly_return)
 
 
-def _longest_valid_segment(group: pd.DataFrame) -> pd.DataFrame:
+def longest_valid_segment(group: pd.DataFrame) -> pd.DataFrame:
+    """Return the longest contiguous segment with a usable observed balance and fund."""
     valid = group[
         group["observed_fund"].isin(FUNDS)
         & group["balance_uf"].gt(0)
@@ -72,7 +73,7 @@ def simulate_panel(
         raise ValueError("sensitivity_cuts debe contener un escenario llamado 'base'")
 
     for correl, complete_group in panel.groupby("correl", sort=False, observed=True):
-        group = _longest_valid_segment(complete_group).sort_values("period_ordinal")
+        group = longest_valid_segment(complete_group).sort_values("period_ordinal")
         if len(group) < minimum_history_months:
             exclusion_records.append(
                 {

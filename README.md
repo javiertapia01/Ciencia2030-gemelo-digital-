@@ -167,6 +167,7 @@ Su principal fortaleza es la profundidad longitudinal. Sus principales limitacio
 | Motor contable paralelo | Implementado y probado |
 | Regla base y sensibilidades | Implementadas |
 | Gate contable obligatorio | Implementado |
+| Diagnóstico mensual de un paso | Implementado y evaluado en muestra de 100 personas |
 | Inferencia y estratificación | Implementadas, bloqueadas hasta pasar el gate |
 | Demo toy sin datos confidenciales | Implementada |
 | Validación empírica HPA | En diagnóstico |
@@ -182,26 +183,36 @@ En una corrida reproducible de diagnóstico sobre 100 personas seleccionadas:
 
 El resultado metodológicamente correcto fue **`gate_closed`**. El sistema no publicó diferencias contrafactuales HPA. Esto muestra que el control funciona: todavía no corresponde presentar ganadores, pérdidas o un efecto promedio con datos reales.
 
-## Próximo hito técnico
+Sobre la misma selección reproducible, el nuevo diagnóstico comparó 24 convenciones en 11.514 transiciones comunes. La variante elegida únicamente con calibración fue cotización del mes actual al final del periodo y retorno del mes siguiente ponderado por saldos A–E. Su mediana de residuo relativo absoluto fue 0,45% en calibración y 0,32% en validación, frente a 2,11% y 1,93% de la convención base. En validación, el percentil 90 fue 2,79%, pero 2,6% de las transiciones todavía superó 10% y permanecen casos extremos asociados a caídas abruptas de saldo.
 
-La siguiente iteración debe explicar por qué la reconstrucción se separa del saldo reportado. La prioridad es agregar un diagnóstico mensual de un paso:
+Este resultado identifica una convención temporal prometedora; no autoriza reemplazarla automáticamente en el motor. Primero deben explicarse los casos extremos y luego repetirse el gate acumulativo fuera de calibración.
+
+## Diagnóstico contable de un paso
+
+Para explicar por qué la reconstrucción se separa del saldo reportado, cada corrida calcula además un diagnóstico mensual de un paso:
 
 \[
 R_{i,t}=B^{reportado}_{i,t+1}-(B^{reportado}_{i,t}+C_{i,t})(1+r_{i,t})
 \]
 
-Este residuo permitirá localizar el primer mes problemático sin arrastrar errores acumulados.
+Este residuo parte nuevamente del saldo reportado en cada transición, por lo que permite localizar el primer mes problemático sin arrastrar errores acumulados. No reemplaza el gate acumulativo ni lo abre automáticamente.
 
-El diagnóstico debe comparar:
+El diagnóstico implementado compara 24 variantes formadas por:
 
-- cotización al comienzo, al final y con rezago;
-- fondo del mes actual versus el mes siguiente;
-- fondo dominante versus retorno ponderado por saldos A–E;
+- cotización del mes anterior, actual o siguiente;
+- cotización al comienzo o al final de la aplicación del retorno;
+- composición y retorno del mes actual versus el mes siguiente;
+- fondo dominante versus retorno ponderado por los saldos positivos A–E.
+
+También informa por separado:
+
 - meses normales versus meses con más de un fondo;
 - periodos de acumulación versus periodos cercanos a pensión o fallecimiento;
-- errores por edad, AFP, fondo, año, densidad y presencia de remuneración.
+- errores por edad, AFP, fondo, año, densidad y remuneración.
 
-La variante elegida se calibrará en una parte de los datos y se validará en otra. Nunca se elegirá según qué configuración produzca el resultado contrafactual más atractivo.
+Las personas se asignan de forma determinista y sin solapamiento a calibración o validación. La variante se elige solo por la menor mediana del residuo relativo absoluto en calibración y luego se reporta congelada en validación. Nunca se elige según qué configuración produzca el resultado contrafactual más atractivo.
+
+El próximo paso empírico es clasificar las caídas abruptas y demás casos extremos, revisar sus trayectorias y determinar si corresponden a retiros, pagos, movimientos administrativos u otra ruptura del dominio contable. Solo después corresponde decidir si la evidencia justifica modificar una convención del motor. Cualquier modificación exige repetir el gate acumulativo en personas no usadas para calibrar.
 
 ## Qué entregará el experimento cuando el gate pase
 
@@ -358,6 +369,10 @@ Siempre se generan archivos de auditoría:
 | `validation_summary.json` | Resultado y umbrales del gate. |
 | `validation_errors_by_month.csv` | Evolución temporal del error contable. |
 | `validation_errors_sample.csv` | Ejemplos de errores persona–mes. |
+| `one_step_selection.json` | Variante elegida en calibración y métricas congeladas de validación. |
+| `one_step_variant_summary.csv` | Comparación de las 24 convenciones por partición. |
+| `one_step_residuals.csv` | Residuo mensual base y seleccionado; marca el primer error grande por persona. |
+| `one_step_stratification.csv` | Errores de validación por año, edad, AFP, fondo, densidad y remuneración. |
 | `manual_trajectories.csv` | Historias para revisión humana. |
 | `exclusions.csv` | Personas excluidas y motivo. |
 

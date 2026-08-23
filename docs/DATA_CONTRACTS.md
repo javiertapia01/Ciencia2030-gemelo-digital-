@@ -61,6 +61,10 @@ Siempre:
 - `validation_summary.json`
 - `validation_errors_by_month.csv`
 - `validation_errors_sample.csv`
+- `one_step_selection.json` cuando `diagnostics.one_step.enabled=true`
+- `one_step_variant_summary.csv` cuando `diagnostics.one_step.enabled=true`
+- `one_step_residuals.csv` cuando `diagnostics.one_step.enabled=true`
+- `one_step_stratification.csv` cuando `diagnostics.one_step.enabled=true`
 - `manual_trajectories.csv`
 - `exclusions.csv`
 
@@ -74,3 +78,5 @@ Solo si pasa el gate, o si se fuerza explícitamente como diagnóstico:
 
 Si el gate falla se agrega `GATE_CLOSED.md`. Una corrida forzada mantiene `gate_passed=false` e `interpretation_allowed=false`.
 Sin `--force-counterfactual`, las trayectorias de una corrida con gate cerrado contienen solo saldo reportado y reconstrucción observada; no incluyen columnas what-if ni diferencias contrafactuales.
+
+El diagnóstico de un paso tampoco publica resultados contrafactuales. `one_step_residuals.csv` parte de saldos reportados consecutivos; `one_step_variant_summary.csv` compara variantes sobre las mismas transiciones; y `one_step_selection.json` registra la selección hecha únicamente en calibración y su evaluación separada en validación.

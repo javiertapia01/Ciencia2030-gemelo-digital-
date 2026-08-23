@@ -66,7 +66,19 @@ La evaluación excluye saldos inferiores al mínimo configurable en UF para redu
 
 La primera corrida de calibración mostró que una mediana global podía ocultar deterioro al final de una trayectoria larga; por eso el control terminal es independiente. Los umbrales quedan en el manifiesto de cada corrida y no se relajan silenciosamente para hacer pasar un resultado.
 
-## 6. Inferencia
+## 6. Diagnóstico mensual de un paso
+
+El diagnóstico parte de saldos reportados consecutivos, no de la reconstrucción acumulada:
+
+`R(i,t) = B_reportado(i,t+1) − B_predicho_desde_reportado(i,t)`.
+
+El signo es saldo reportado menos saldo predicho. La comparación usa una muestra común de transiciones con saldo suficiente y con todos los insumos disponibles. Combina tres meses posibles para la cotización —anterior, actual y siguiente—, dos momentos de aplicación —antes o después del retorno— y cuatro convenciones de retorno: fondo dominante o cartera ponderada por saldos, usando el mes actual o el siguiente. Esto produce 24 variantes.
+
+La partición se hace por persona, nunca por fila, de forma determinista con una semilla documentada. La variante con menor mediana del residuo relativo absoluto en calibración se congela y se evalúa en validación. La estratificación posterior utiliza solo validación y cubre año, edad, AFP, fondo, transferencias, etapa laboral, cercanía a fallecimiento, densidad y remuneración.
+
+Este diagnóstico localiza convenciones o periodos problemáticos, pero no sustituye el gate acumulativo. Una variante favorable solo puede pasar al motor después de una decisión metodológica explícita y una nueva validación fuera de calibración.
+
+## 7. Inferencia
 
 - Wilcoxon signed-rank sobre diferencias individuales, usando aproximación normal con corrección de continuidad y empates.
 - Bootstrap percentil remuestreando personas completas, no meses.
@@ -75,6 +87,6 @@ La primera corrida de calibración mostró que una mediana global podía ocultar
 
 Estas herramientas describen heterogeneidad e incertidumbre muestral de la HPA. No convierten la muestra en representativa de Chile ni corrigen la falta de factores de expansión.
 
-## 7. Riesgos de interpretación
+## 8. Riesgos de interpretación
 
 La identidad simplificada no incluye retiros, pagos de pensión, bonos, rezagos de acreditación, movimientos administrativos ni otros flujos que puedan afectar el saldo CCICO. Precisamente por eso el gate no es decorativo: si esos componentes impiden reconstruir el observado con error acotado, el efecto contrafactual no se interpreta.

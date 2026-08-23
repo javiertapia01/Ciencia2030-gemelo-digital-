@@ -10,6 +10,8 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from . import __version__
+from .diagnostics import run_one_step_diagnostics
 from .io import (
     build_panel,
     load_characteristics,
@@ -205,7 +207,7 @@ def run_experiment(
 
     manifest = {
         "experiment_name": config["experiment_name"],
-        "software_version": "0.1.0",
+        "software_version": __version__,
         "started_at_utc": started_at,
         "status": "running",
         "methodological_status": "validation_pending",
@@ -218,6 +220,32 @@ def run_experiment(
         },
     }
     _write_json(output_dir / "run_manifest.json", manifest)
+
+    one_step_config = config["diagnostics"]["one_step"]
+    one_step_selection: dict[str, Any] | None = None
+    if bool(one_step_config["enabled"]):
+        _progress("comparando convenciones con residuos mensuales de un paso")
+        one_step = run_one_step_diagnostics(
+            panel,
+            minimum_history_months=int(config["population"]["minimum_history_months"]),
+            minimum_balance_uf=float(config["validation"]["minimum_observed_balance_uf"]),
+            calibration_share=float(one_step_config["calibration_share"]),
+            split_seed=int(one_step_config["split_seed"]),
+            large_relative_residual_threshold=float(
+                one_step_config["large_relative_residual_threshold"]
+            ),
+        )
+        one_step_selection = one_step.selection
+        _write_json(output_dir / "one_step_selection.json", one_step.selection)
+        one_step.variant_summary.to_csv(
+            output_dir / "one_step_variant_summary.csv", index=False, encoding="utf-8"
+        )
+        one_step.residuals.to_csv(
+            output_dir / "one_step_residuals.csv", index=False, encoding="utf-8"
+        )
+        one_step.stratification.to_csv(
+            output_dir / "one_step_stratification.csv", index=False, encoding="utf-8"
+        )
 
     _progress("reconstruyendo trayectorias observadas y escenarios generacionales")
     simulation = simulate_panel(
@@ -297,6 +325,7 @@ def run_experiment(
             "output_directory": str(output_dir),
             "gate_passed": gate_passed,
             "eligible_people": int(len(simulation.individual)),
+            "one_step_diagnostic": one_step_selection,
         }
     )
     _write_json(output_dir / "run_manifest.json", manifest)
@@ -305,6 +334,9 @@ def run_experiment(
         "status": status,
         "gate_passed": gate_passed,
         "eligible_people": int(len(simulation.individual)),
+        "one_step_selected_variant": (
+            one_step_selection["selected_variant"] if one_step_selection else None
+        ),
         "output_directory": str(output_dir),
         "duration_seconds": round(duration, 3),
     }
