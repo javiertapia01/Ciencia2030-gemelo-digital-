@@ -1,0 +1,302 @@
+{
+  "experiment_name": "motor_financiero_reproducible_v1",
+  "software_version": "0.5.0",
+  "numpy_version": "2.5.2",
+  "pandas_version": "3.0.5",
+  "config_sha256": "9985f950b1e9e4872e121d6fb7a6feeff69a4b737870fb87743aa00098b1aae4",
+  "status": "completed",
+  "experiment_type": "synthetic_joint_labor_financial_monte_carlo_v1",
+  "methodological_scope": "motor_financiero_reproducible_v1",
+  "seed": 2030,
+  "random_number_generator": "numpy.default_rng.PCG64",
+  "independent_random_streams": {
+    "labor": [
+      0
+    ],
+    "market": [
+      1
+    ]
+  },
+  "paths": 10000,
+  "months": 528,
+  "years": 44.0,
+  "market_model": "gaussian_multivariate_simple_returns",
+  "shared_accounting_core": "individual_core.accounting_step_vectorized",
+  "contribution_timing": "start",
+  "account_unit": "UF_real",
+  "fund_count": 10,
+  "funds_used_by_profile_horizon": [
+    "FG01",
+    "FG02",
+    "FG03",
+    "FG04",
+    "FG05",
+    "FG06",
+    "FG07"
+  ],
+  "representative_paths": {
+    "p10": "draw_02681",
+    "p50": "draw_05820",
+    "p90": "draw_07268"
+  },
+  "minimum_covariance_eigenvalue": 1.4730813288800623e-08,
+  "validation_gates": {
+    "transition_rows_sum_to_one": true,
+    "fund_weights_sum_to_one": true,
+    "covariance_positive_semidefinite": true,
+    "all_simulated_asset_and_fund_returns_above_minus_one": true,
+    "representative_trajectories_pass_accounting_identity": true
+  },
+  "corrections_applied": [
+    {
+      "id": "fund_fg03_full_investment",
+      "original_issue": "Los pesos del tercer fondo sumaban 0,90.",
+      "decision": "Se aumenta renta_fija_nacional de 0,15 a 0,25 para que la cartera sume 1,00.",
+      "status": "decisión técnica explícita pendiente de confirmar con preámbulo.py"
+    },
+    {
+      "id": "reproducible_rng",
+      "original_issue": "El script no fijaba semilla y mezclaba el consumo aleatorio laboral y financiero.",
+      "decision": "Se usa semilla maestra 2030 y flujos PCG64 independientes para trabajo y mercado.",
+      "status": "implementado"
+    },
+    {
+      "id": "consistent_real_units",
+      "original_issue": "El script mezclaba un salario en pesos sin declarar su base con retornos de naturaleza no documentada.",
+      "decision": "El perfil se expresa en UF reales y la procedencia de los retornos queda marcada como pendiente.",
+      "status": "implementado"
+    }
+  ],
+  "warnings": [
+    "Las transiciones laborales y los parámetros financieros son supuestos no calibrados con HPA.",
+    "Los fondos FG01-FG10 son sintéticos y no representan carteras regulatorias oficiales.",
+    "La tasa de cotización es un escenario simplificado constante, no la implementación temporal de la reforma.",
+    "Los retornos normales multivariados no reproducen completamente colas, crisis ni cambios de régimen.",
+    "Los resultados combinan incertidumbre laboral y financiera y no constituyen una predicción individual o nacional."
+  ],
+  "config": {
+    "experiment_name": "motor_financiero_reproducible_v1",
+    "seed": 2030,
+    "paths": 10000,
+    "profile": {
+      "start_age": 21,
+      "retirement_age": 65,
+      "initial_monthly_wage_uf": 25.0,
+      "initial_balance_uf": 0.0,
+      "annual_real_wage_growth": 0.0,
+      "contribution_rate": 0.145,
+      "contribution_timing": "start",
+      "account_unit": "UF_real",
+      "contribution_policy_note": "Escenario simplificado de régimen: 10% del trabajador más 4,5% patronal directo. No representa la gradualidad vigente ni separa los destinos del aporte patronal."
+    },
+    "labor": {
+      "states": [
+        "cotizando",
+        "desempleado",
+        "informal"
+      ],
+      "initial_state": "cotizando",
+      "contributing_states": [
+        "cotizando"
+      ],
+      "transition_matrix": {
+        "cotizando": {
+          "cotizando": 0.957,
+          "desempleado": 0.013,
+          "informal": 0.03
+        },
+        "desempleado": {
+          "cotizando": 0.55,
+          "desempleado": 0.35,
+          "informal": 0.1
+        },
+        "informal": {
+          "cotizando": 0.3,
+          "desempleado": 0.1,
+          "informal": 0.6
+        }
+      },
+      "parameter_provenance": "Matriz activa del archivo markov (1).py recibido por el equipo. El archivo la atribuye a preámbulo.py, que no estuvo disponible para esta integración; se trata como supuesto no calibrado."
+    },
+    "market": {
+      "model": "gaussian_multivariate_simple_returns",
+      "assets": [
+        "renta_fija_nacional",
+        "acciones_nacionales",
+        "fondos_mutuos_nacionales",
+        "renta_variable_extranjera",
+        "deuda_extranjera"
+      ],
+      "monthly_mean_simple_returns": [
+        0.00013,
+        0.00153,
+        6e-05,
+        0.00282,
+        0.00033
+      ],
+      "monthly_covariance": [
+        [
+          1.93255904e-05,
+          1.20299435e-06,
+          7.21271186e-08,
+          -1.54058192e-06,
+          3.27422599e-06
+        ],
+        [
+          1.20299435e-06,
+          2.31073446e-05,
+          7.04067797e-07,
+          1.47315819e-05,
+          -6.37090395e-06
+        ],
+        [
+          7.21271186e-08,
+          7.04067797e-07,
+          3.70932203e-08,
+          3.93101695e-07,
+          -3.58779661e-07
+        ],
+        [
+          -1.54058192e-06,
+          1.47315819e-05,
+          3.93101695e-07,
+          0.000182836734,
+          3.11742825e-05
+        ],
+        [
+          3.27422599e-06,
+          -6.37090395e-06,
+          -3.58779661e-07,
+          3.11742825e-05,
+          4.13924972e-05
+        ]
+      ],
+      "parameter_provenance": "Medias mensuales y covarianza copiadas de markov (1).py. Su periodo, fuente primaria, unidad real o nominal y transformación deben confirmarse con preámbulo.py antes de interpretar empíricamente los resultados."
+    },
+    "funds": {
+      "ids": [
+        "FG01",
+        "FG02",
+        "FG03",
+        "FG04",
+        "FG05",
+        "FG06",
+        "FG07",
+        "FG08",
+        "FG09",
+        "FG10"
+      ],
+      "age_upper_bounds_inclusive": [
+        35,
+        40,
+        45,
+        50,
+        55,
+        60,
+        65,
+        70,
+        75
+      ],
+      "weights": {
+        "FG01": {
+          "renta_fija_nacional": 0.07,
+          "acciones_nacionales": 0.5,
+          "fondos_mutuos_nacionales": 0.1,
+          "renta_variable_extranjera": 0.25,
+          "deuda_extranjera": 0.08
+        },
+        "FG02": {
+          "renta_fija_nacional": 0.1,
+          "acciones_nacionales": 0.5,
+          "fondos_mutuos_nacionales": 0.1,
+          "renta_variable_extranjera": 0.2,
+          "deuda_extranjera": 0.1
+        },
+        "FG03": {
+          "renta_fija_nacional": 0.25,
+          "acciones_nacionales": 0.3,
+          "fondos_mutuos_nacionales": 0.1,
+          "renta_variable_extranjera": 0.2,
+          "deuda_extranjera": 0.15
+        },
+        "FG04": {
+          "renta_fija_nacional": 0.2,
+          "acciones_nacionales": 0.3,
+          "fondos_mutuos_nacionales": 0.15,
+          "renta_variable_extranjera": 0.15,
+          "deuda_extranjera": 0.2
+        },
+        "FG05": {
+          "renta_fija_nacional": 0.35,
+          "acciones_nacionales": 0.2,
+          "fondos_mutuos_nacionales": 0.15,
+          "renta_variable_extranjera": 0.1,
+          "deuda_extranjera": 0.2
+        },
+        "FG06": {
+          "renta_fija_nacional": 0.4,
+          "acciones_nacionales": 0.15,
+          "fondos_mutuos_nacionales": 0.15,
+          "renta_variable_extranjera": 0.1,
+          "deuda_extranjera": 0.2
+        },
+        "FG07": {
+          "renta_fija_nacional": 0.45,
+          "acciones_nacionales": 0.1,
+          "fondos_mutuos_nacionales": 0.12,
+          "renta_variable_extranjera": 0.08,
+          "deuda_extranjera": 0.25
+        },
+        "FG08": {
+          "renta_fija_nacional": 0.5,
+          "acciones_nacionales": 0.05,
+          "fondos_mutuos_nacionales": 0.1,
+          "renta_variable_extranjera": 0.05,
+          "deuda_extranjera": 0.3
+        },
+        "FG09": {
+          "renta_fija_nacional": 0.55,
+          "acciones_nacionales": 0.04,
+          "fondos_mutuos_nacionales": 0.07,
+          "renta_variable_extranjera": 0.04,
+          "deuda_extranjera": 0.3
+        },
+        "FG10": {
+          "renta_fija_nacional": 0.55,
+          "acciones_nacionales": 0.02,
+          "fondos_mutuos_nacionales": 0.06,
+          "renta_variable_extranjera": 0.02,
+          "deuda_extranjera": 0.35
+        }
+      },
+      "parameter_provenance": "Carteras de markov (1).py. Se renombran FG01-FG10 para dejar claro que son fondos sintéticos y no carteras oficiales."
+    },
+    "reporting": {
+      "representative_quantiles": [
+        0.1,
+        0.5,
+        0.9
+      ]
+    },
+    "corrections_applied": [
+      {
+        "id": "fund_fg03_full_investment",
+        "original_issue": "Los pesos del tercer fondo sumaban 0,90.",
+        "decision": "Se aumenta renta_fija_nacional de 0,15 a 0,25 para que la cartera sume 1,00.",
+        "status": "decisión técnica explícita pendiente de confirmar con preámbulo.py"
+      },
+      {
+        "id": "reproducible_rng",
+        "original_issue": "El script no fijaba semilla y mezclaba el consumo aleatorio laboral y financiero.",
+        "decision": "Se usa semilla maestra 2030 y flujos PCG64 independientes para trabajo y mercado.",
+        "status": "implementado"
+      },
+      {
+        "id": "consistent_real_units",
+        "original_issue": "El script mezclaba un salario en pesos sin declarar su base con retornos de naturaleza no documentada.",
+        "decision": "El perfil se expresa en UF reales y la procedencia de los retornos queda marcada como pendiente.",
+        "status": "implementado"
+      }
+    ]
+  }
+}

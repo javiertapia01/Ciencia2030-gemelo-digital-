@@ -1,0 +1,10 @@
+source_state,target_state,monthly_probability
+cotizando,cotizando,0.957
+cotizando,desempleado,0.013
+cotizando,informal,0.03
+desempleado,cotizando,0.55
+desempleado,desempleado,0.35
+desempleado,informal,0.1
+informal,cotizando,0.3
+informal,desempleado,0.1
+informal,informal,0.6

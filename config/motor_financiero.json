@@ -1,0 +1,164 @@
+{
+  "experiment_name": "motor_financiero_reproducible_v1",
+  "seed": 2030,
+  "paths": 10000,
+  "profile": {
+    "start_age": 21,
+    "retirement_age": 65,
+    "initial_monthly_wage_uf": 25.0,
+    "initial_balance_uf": 0.0,
+    "annual_real_wage_growth": 0.0,
+    "contribution_rate": 0.145,
+    "contribution_timing": "start",
+    "account_unit": "UF_real",
+    "contribution_policy_note": "Escenario simplificado de régimen: 10% del trabajador más 4,5% patronal directo. No representa la gradualidad vigente ni separa los destinos del aporte patronal."
+  },
+  "labor": {
+    "states": ["cotizando", "desempleado", "informal"],
+    "initial_state": "cotizando",
+    "contributing_states": ["cotizando"],
+    "transition_matrix": {
+      "cotizando": {
+        "cotizando": 0.957,
+        "desempleado": 0.013,
+        "informal": 0.030
+      },
+      "desempleado": {
+        "cotizando": 0.550,
+        "desempleado": 0.350,
+        "informal": 0.100
+      },
+      "informal": {
+        "cotizando": 0.300,
+        "desempleado": 0.100,
+        "informal": 0.600
+      }
+    },
+    "parameter_provenance": "Matriz activa del archivo markov (1).py recibido por el equipo. El archivo la atribuye a preámbulo.py, que no estuvo disponible para esta integración; se trata como supuesto no calibrado."
+  },
+  "market": {
+    "model": "gaussian_multivariate_simple_returns",
+    "assets": [
+      "renta_fija_nacional",
+      "acciones_nacionales",
+      "fondos_mutuos_nacionales",
+      "renta_variable_extranjera",
+      "deuda_extranjera"
+    ],
+    "monthly_mean_simple_returns": [
+      0.00013,
+      0.00153,
+      0.00006,
+      0.00282,
+      0.00033
+    ],
+    "monthly_covariance": [
+      [0.0000193255904, 0.00000120299435, 0.0000000721271186, -0.00000154058192, 0.00000327422599],
+      [0.00000120299435, 0.0000231073446, 0.000000704067797, 0.0000147315819, -0.00000637090395],
+      [0.0000000721271186, 0.000000704067797, 0.0000000370932203, 0.000000393101695, -0.000000358779661],
+      [-0.00000154058192, 0.0000147315819, 0.000000393101695, 0.000182836734, 0.0000311742825],
+      [0.00000327422599, -0.00000637090395, -0.000000358779661, 0.0000311742825, 0.0000413924972]
+    ],
+    "parameter_provenance": "Medias mensuales y covarianza copiadas de markov (1).py. Su periodo, fuente primaria, unidad real o nominal y transformación deben confirmarse con preámbulo.py antes de interpretar empíricamente los resultados."
+  },
+  "funds": {
+    "ids": ["FG01", "FG02", "FG03", "FG04", "FG05", "FG06", "FG07", "FG08", "FG09", "FG10"],
+    "age_upper_bounds_inclusive": [35, 40, 45, 50, 55, 60, 65, 70, 75],
+    "weights": {
+      "FG01": {
+        "renta_fija_nacional": 0.07,
+        "acciones_nacionales": 0.50,
+        "fondos_mutuos_nacionales": 0.10,
+        "renta_variable_extranjera": 0.25,
+        "deuda_extranjera": 0.08
+      },
+      "FG02": {
+        "renta_fija_nacional": 0.10,
+        "acciones_nacionales": 0.50,
+        "fondos_mutuos_nacionales": 0.10,
+        "renta_variable_extranjera": 0.20,
+        "deuda_extranjera": 0.10
+      },
+      "FG03": {
+        "renta_fija_nacional": 0.25,
+        "acciones_nacionales": 0.30,
+        "fondos_mutuos_nacionales": 0.10,
+        "renta_variable_extranjera": 0.20,
+        "deuda_extranjera": 0.15
+      },
+      "FG04": {
+        "renta_fija_nacional": 0.20,
+        "acciones_nacionales": 0.30,
+        "fondos_mutuos_nacionales": 0.15,
+        "renta_variable_extranjera": 0.15,
+        "deuda_extranjera": 0.20
+      },
+      "FG05": {
+        "renta_fija_nacional": 0.35,
+        "acciones_nacionales": 0.20,
+        "fondos_mutuos_nacionales": 0.15,
+        "renta_variable_extranjera": 0.10,
+        "deuda_extranjera": 0.20
+      },
+      "FG06": {
+        "renta_fija_nacional": 0.40,
+        "acciones_nacionales": 0.15,
+        "fondos_mutuos_nacionales": 0.15,
+        "renta_variable_extranjera": 0.10,
+        "deuda_extranjera": 0.20
+      },
+      "FG07": {
+        "renta_fija_nacional": 0.45,
+        "acciones_nacionales": 0.10,
+        "fondos_mutuos_nacionales": 0.12,
+        "renta_variable_extranjera": 0.08,
+        "deuda_extranjera": 0.25
+      },
+      "FG08": {
+        "renta_fija_nacional": 0.50,
+        "acciones_nacionales": 0.05,
+        "fondos_mutuos_nacionales": 0.10,
+        "renta_variable_extranjera": 0.05,
+        "deuda_extranjera": 0.30
+      },
+      "FG09": {
+        "renta_fija_nacional": 0.55,
+        "acciones_nacionales": 0.04,
+        "fondos_mutuos_nacionales": 0.07,
+        "renta_variable_extranjera": 0.04,
+        "deuda_extranjera": 0.30
+      },
+      "FG10": {
+        "renta_fija_nacional": 0.55,
+        "acciones_nacionales": 0.02,
+        "fondos_mutuos_nacionales": 0.06,
+        "renta_variable_extranjera": 0.02,
+        "deuda_extranjera": 0.35
+      }
+    },
+    "parameter_provenance": "Carteras de markov (1).py. Se renombran FG01-FG10 para dejar claro que son fondos sintéticos y no carteras oficiales."
+  },
+  "reporting": {
+    "representative_quantiles": [0.10, 0.50, 0.90]
+  },
+  "corrections_applied": [
+    {
+      "id": "fund_fg03_full_investment",
+      "original_issue": "Los pesos del tercer fondo sumaban 0,90.",
+      "decision": "Se aumenta renta_fija_nacional de 0,15 a 0,25 para que la cartera sume 1,00.",
+      "status": "decisión técnica explícita pendiente de confirmar con preámbulo.py"
+    },
+    {
+      "id": "reproducible_rng",
+      "original_issue": "El script no fijaba semilla y mezclaba el consumo aleatorio laboral y financiero.",
+      "decision": "Se usa semilla maestra 2030 y flujos PCG64 independientes para trabajo y mercado.",
+      "status": "implementado"
+    },
+    {
+      "id": "consistent_real_units",
+      "original_issue": "El script mezclaba un salario en pesos sin declarar su base con retornos de naturaleza no documentada.",
+      "decision": "El perfil se expresa en UF reales y la procedencia de los retornos queda marcada como pendiente.",
+      "status": "implementado"
+    }
+  ]
+}

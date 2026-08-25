@@ -1,0 +1,2 @@
+paths,months,years,mean_final_balance_uf,std_final_balance_uf,min_final_balance_uf,p10_final_balance_uf,p25_final_balance_uf,median_final_balance_uf,p75_final_balance_uf,p90_final_balance_uf,max_final_balance_uf,mean_total_contributions_uf,median_contribution_density
+10000,528,44.0,2196.4544952091446,123.57717021502131,1797.3535849476643,2040.2934972423946,2110.3464883980596,2193.371166614387,2279.767597748385,2356.4106168170765,2734.865996813611,1715.3572499999996,0.8977272727272727

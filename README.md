@@ -175,6 +175,7 @@ Su principal fortaleza es la profundidad longitudinal. Sus principales limitacio
 | Demo toy sin datos confidenciales | Implementada |
 | Validación empírica HPA | Gate aprobado en validación reservada y cohorte completa |
 | Hito 2: nivel individual estocástico | Implementado en primera versión sintética |
+| Motor financiero reproducible | Implementado en v1 con cinco activos correlacionados y diez fondos sintéticos |
 | Nivel AFP | No iniciado en este repositorio |
 
 El Experimento I se completó en dos etapas. En una muestra reproducible de 100 personas, la comparación de 24 variantes eligió solo en calibración la cotización actual al cierre y el retorno ponderado del mes siguiente. Sin reajustarla, el gate acumulativo pasó en 38 personas reservadas para validación: error absoluto mediano 1,74%, error terminal 2,22% y deriva anual −0,037 puntos porcentuales.
@@ -266,6 +267,18 @@ gemelo-previsional hito2 --config config/hito2.json --output-dir examples/hito2
 ```
 
 Los parámetros son supuestos de escenarios y no estimaciones HPA. La metodología, las limitaciones y los criterios de validación están en [`docs/MILESTONE2.md`](docs/MILESTONE2.md); los resultados reproducibles se encuentran en [`examples/hito2/`](examples/hito2/README.md).
+
+### Motor financiero reproducible v1
+
+La primera extensión financiera adapta el prototipo recibido por el equipo a una ruta parametrizada, reproducible y cubierta por pruebas. Simula conjuntamente una cadena laboral de tres estados, cinco retornos de activos correlacionados y diez fondos sintéticos FG01–FG10.
+
+La configuración valida que las carteras sumen 100%, que la covarianza sea simétrica y semidefinida positiva, que las unidades sean UF reales y que la procedencia de los parámetros esté declarada. Los flujos aleatorios laboral y financiero son independientes y reproducibles desde la semilla maestra.
+
+```powershell
+gemelo-previsional motor-financiero --config config/motor_financiero.json --output-dir examples/motor_financiero
+```
+
+Esta ruta estima incertidumbre conjunta sintética; no reemplaza el Experimento I ni la comparación laboral controlada del Hito 2. Los parámetros financieros siguen pendientes de contrastarse con su fuente primaria. Consulte [`docs/FINANCIAL_ENGINE.md`](docs/FINANCIAL_ENGINE.md).
 
 ### Integración entre Experimento I e Hito 2
 
@@ -378,7 +391,7 @@ python -m pip install -e .
 python -m unittest discover -s tests -v
 ```
 
-Las pruebas verifican unidades, topes, cortes etarios, identidad contable, contribuciones iguales entre mundos, gate, inferencia reproducible, demo toy y reproducibilidad del Hito 2.
+Las pruebas verifican unidades, topes, cortes etarios, identidad contable, contribuciones iguales entre mundos, gate, inferencia reproducible, demo toy, reproducibilidad del Hito 2 y validaciones del motor financiero.
 
 ### Ejecutar el segundo hito
 
@@ -387,6 +400,14 @@ gemelo-previsional hito2 --config config/hito2.json --output-dir examples/hito2
 ```
 
 La semilla y el número de caminos se pueden sobrescribir con `--seed` y `--paths`. La configuración versionada contiene el perfil común y las matrices de transición completas.
+
+### Ejecutar el motor financiero
+
+```powershell
+gemelo-previsional motor-financiero --config config/motor_financiero.json --output-dir examples/motor_financiero
+```
+
+La metodología, correcciones y límites del modelo normal multivariado están en [`docs/FINANCIAL_ENGINE.md`](docs/FINANCIAL_ENGINE.md).
 
 ### 3. Conectar los datos autorizados
 

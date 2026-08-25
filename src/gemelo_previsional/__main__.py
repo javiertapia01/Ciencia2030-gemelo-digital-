@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 from .config import ConfigurationError, load_config
+from .financial_engine import load_financial_engine_config, run_financial_engine
 from .milestone2 import load_milestone2_config, run_milestone2
 from .pipeline import run_experiment
 from .toy import run_toy_experiments
@@ -54,6 +55,24 @@ def build_parser() -> argparse.ArgumentParser:
         "--paths", type=int, help="Sobrescribe el número de trayectorias por escenario"
     )
     hito2.add_argument("--seed", type=int, help="Sobrescribe la semilla reproducible")
+    financial = subparsers.add_parser(
+        "motor-financiero",
+        help="Ejecuta el motor conjunto laboral-financiero con diez fondos sintéticos",
+    )
+    financial.add_argument(
+        "--config",
+        default="config/motor_financiero.json",
+        help="Configuración JSON del motor financiero reproducible",
+    )
+    financial.add_argument(
+        "--output-dir",
+        default="examples/motor_financiero",
+        help="Directorio de resultados del motor financiero",
+    )
+    financial.add_argument(
+        "--paths", type=int, help="Sobrescribe el número de caminos Monte Carlo"
+    )
+    financial.add_argument("--seed", type=int, help="Sobrescribe la semilla reproducible")
     return parser
 
 
@@ -74,6 +93,13 @@ def main(argv: list[str] | None = None) -> int:
             if args.seed is not None:
                 config["seed"] = args.seed
             result = run_milestone2(config, Path(args.output_dir))
+        elif args.command == "motor-financiero":
+            config = load_financial_engine_config(args.config)
+            if args.paths is not None:
+                config["paths"] = args.paths
+            if args.seed is not None:
+                config["seed"] = args.seed
+            result = run_financial_engine(config, Path(args.output_dir))
         else:
             config = load_config(args.config)
             if args.sample_size is not None:
@@ -92,7 +118,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
     print(json.dumps(result, ensure_ascii=False, indent=2))
-    if args.command in {"toy", "hito2"}:
+    if args.command in {"toy", "hito2", "motor-financiero"}:
         return 0
     return 0 if result["status"] in {"completed", "gate_closed"} else 1
 
